@@ -1,0 +1,1980 @@
+
+        /* ================================================== */
+        /* GLOBAL STYLES */
+        /* ================================================== */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: #818cf8;
+        }
+        
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            background: #fafafa;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* ================================================== */
+        /* HEADER - Consistent across all pages */
+        /* ================================================== */
+        
+        .header {
+            background: white;
+            padding: 1rem 3rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .logo::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 1px;
+            background: #333;
+            top: 50%;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 30px;
+            background: #333;
+            left: 50%;
+        }
+        
+        .logo-text h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.1rem;
+            font-family: 'Comfortaa', cursive;
+            letter-spacing: 0.5px;
+        }
+        
+        .logo-text p {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 400;
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .user-email {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.9rem;
+            color: #666;
+            margin-right: 0.5rem;
+        }
+        
+        /* ================================================== */
+        /* BUTTONS */
+        /* ================================================== */
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.9rem;
+            border: 2px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            background: white;
+            color: #333;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-dark {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .btn-dark:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
+        .btn-google {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .btn-google:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-google:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-action {
+            flex: 1;
+            padding: 0.875rem;
+            border: 2px solid #333;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #333;
+            font-weight: 500;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .btn-action:hover {
+            background: #333;
+            color: white;
+        }
+        
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+            border: 2px solid #dc3545;
+        }
+        
+        .btn-cancel:hover {
+            background: #c82333;
+            border-color: #c82333;
+        }
+        
+        /* ================================================== */
+        /* CONTAINER - Holds all content sections */
+        /* ================================================== */
+        
+        .container {
+            position: relative;
+            min-height: calc(100vh - 83px);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .container.login-active {
+            transform: translateY(-100vh);
+        }
+        
+        /* ================================================== */
+        /* MAIN SECTION - Hero/Home page */
+        /* ================================================== */
+        
+        .main-section {
+            min-height: calc(100vh - 83px);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 4rem 3rem 4rem 5rem;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f1ff 100%);
+        }
+        
+        .hero-content {
+            max-width: 750px;
+        }
+        
+        .hero-content h1 {
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            color: #333;
+            line-height: 1.2;
+            font-family: 'Comfortaa', cursive;
+            letter-spacing: -0.5px;
+        }
+        
+        .hero-content h1 .highlight {
+            color: var(--accent-color);
+        }
+        
+        .hero-content p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #666;
+            max-width: 650px;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        /* ================================================== */
+        /* LOGIN/SIGNUP SECTION */
+        /* ================================================== */
+        
+        .login-section {
+            min-height: calc(100vh - 83px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            background: white;
+        }
+        
+        .auth-container {
+            display: flex;
+            gap: 6rem;
+            align-items: flex-start;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .auth-left {
+            flex: 0 0 340px;
+            padding-top: 1rem;
+        }
+        
+        .auth-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .auth-icon {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            color: var(--accent-color);
+        }
+        
+        .auth-title h2 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: #333;
+            font-family: 'Comfortaa', cursive;
+            letter-spacing: 0.5px;
+        }
+        
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .auth-right {
+            flex: 1;
+            max-width: 450px;
+            padding-top: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group input::placeholder {
+            color: #999;
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+        }
+        
+        .forgot-link {
+            display: block;
+            text-align: right;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+            margin-top: -0.25rem;
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+        }
+        
+        .forgot-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* ================================================== */
+        /* ERROR/SUCCESS MESSAGES */
+        /* ================================================== */
+        
+        .error-message,
+        .success-message {
+            padding: 0.875rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            display: none;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+        
+        .error-message.show,
+        .success-message.show {
+            display: block;
+        }
+        
+        /* ================================================== */
+        /* LOGGED IN STATE */
+        /* ================================================== */
+        
+        .logged-in-section {
+            display: none;
+            min-height: calc(100vh - 83px);
+            background: white;
+        }
+        
+        .logged-in-section.active {
+            display: block;
+        }
+        
+        .dashboard-content {
+            padding: 4rem 3rem 4rem 5rem;
+            max-width: 1200px;
+        }
+        
+        .dashboard-content h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: 400;
+            font-size: 2.5rem;
+            font-family: 'Comfortaa', cursive;
+            letter-spacing: 0.5px;
+        }
+        
+        .dashboard-content p {
+            color: #666;
+            line-height: 1.7;
+            font-size: 1rem;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        /* ================================================== */
+        /* TOAST / SNACKBAR */
+        /* ================================================== */
+        
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000000;
+            color: rgb(253, 253, 253);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            bottom: 2rem;
+        }
+        
+        .toast-message {
+            font-size: 0.95rem;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .toast-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-confirm {
+            background: #27ae60;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .btn-confirm:hover {
+            background: #229954;
+        }
+        
+        .btn-toast-cancel {
+            background: #95a5a6;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        .btn-toast-cancel:hover {
+            background: #7f8c8d;
+        }
+        
+        /* ================================================== */
+        /* LOADING SPINNER */
+        /* ================================================== */
+        
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ================================================== */
+        /* RESPONSIVE */
+        /* ================================================== */
+        
+        @media (max-width: 968px) {
+            .auth-container {
+                flex-direction: column;
+                gap: 3rem;
+                align-items: stretch;
+            }
+            
+            .auth-left {
+                flex: 1;
+            }
+            
+            .auth-right {
+                max-width: 100%;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .header {
+                padding: 1rem 1.5rem;
+            }
+            
+            .main-section {
+                padding: 3rem 2rem;
+            }
+            
+            .login-section {
+                padding: 2rem 1.5rem;
+            }
+            
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .auth-title h2 {
+                font-size: 1.8rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+        /* ================================================== */
+        /* APP LAYOUT — SIDEBAR + MAIN */
+        /* ================================================== */
+
+        .logged-in-section.active {
+            display: flex;
+            flex-direction: row;
+            min-height: calc(100vh - 83px);
+            background: #f5f6fb;
+        }
+
+        /* ─── Sidebar ─── */
+
+        .app-sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: white;
+            border-right: 1px solid #e8e8f0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 83px;
+            height: calc(100vh - 83px);
+            overflow-y: auto;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 200;
+        }
+
+        .sidebar-header {
+            display: none;
+            padding: 1rem 1rem 0;
+            justify-content: flex-end;
+        }
+
+        .sidebar-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .sidebar-close-btn:hover {
+            background: #f0f1ff;
+            color: var(--accent-color);
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0.75rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.875rem;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background: #f0f1ff;
+            color: var(--accent-color);
+        }
+
+        .sidebar-item.active {
+            background: #eef0ff;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .sidebar-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-label {
+            white-space: nowrap;
+        }
+
+        .sidebar-footer {
+            padding: 0.75rem;
+            border-top: 1px solid #e8e8f0;
+        }
+
+        .sidebar-logout {
+            color: #e74c3c;
+        }
+
+        .sidebar-logout:hover {
+            background: #fff0f0;
+            color: #c0392b;
+        }
+
+        /* ─── Overlay for mobile ─── */
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 199;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+        }
+
+        /* ─── Main content area ─── */
+
+        .app-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Mobile topbar ─── */
+
+        .app-topbar {
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.25rem;
+            background: white;
+            border-bottom: 1px solid #e8e8f0;
+            position: sticky;
+            top: 83px;
+            z-index: 150;
+        }
+
+        .hamburger-btn {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #333;
+            border-radius: 2px;
+            transition: background 0.2s;
+        }
+
+        .hamburger-btn:hover span {
+            background: var(--accent-color);
+        }
+
+        .app-topbar-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* ─── Tab content panes ─── */
+
+        .tab-content {
+            display: none;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-inner {
+            padding: 2.5rem 3rem;
+            max-width: 900px;
+        }
+
+        .tab-heading {
+            font-family: 'Comfortaa', cursive;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-subtext {
+            font-family: 'Crimson Text', serif;
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ================================================== */
+        /* DASHBOARD CARDS */
+        /* ================================================== */
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .dash-card {
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 12px;
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .dash-card:hover {
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .dash-card-icon {
+            font-size: 1.75rem;
+        }
+
+        .dash-card-label {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .dash-card-value {
+            font-family: 'Comfortaa', cursive;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        /* ================================================== */
+        /* ACCORDION */
+        /* ================================================== */
+
+        .accordion {
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: white;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            transition: background 0.2s ease;
+        }
+
+        .accordion-header:hover {
+            background: #f8f8ff;
+        }
+
+        .accordion-arrow {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.3s ease;
+            padding: 0 1.25rem;
+        }
+
+        .accordion-body.open {
+            max-height: 600px;
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .accordion-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .resume-textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: 'Crimson Text', serif;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .resume-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .resume-export-bar {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e8e8f0;
+        }
+
+        .export-btn {
+            padding: 0.875rem 2rem;
+            font-size: 0.95rem;
+        }
+
+        /* ================================================== */
+        /* CERTIFICATES */
+        /* ================================================== */
+
+        .upload-zone {
+            border: 2px dashed #c9caf0;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafbff;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-color);
+            background: #f0f1ff;
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent-color);
+        }
+
+        .upload-label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.95rem;
+            color: #444;
+            margin-bottom: 0.35rem;
+        }
+
+        .upload-hint {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .cert-preview-card {
+            display: none;
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.08);
+        }
+
+        .cert-preview-card.show {
+            display: block;
+        }
+
+        .cert-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .cert-preview-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .cert-preview-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 0.2rem;
+        }
+
+        .cert-preview-close:hover { color: #e74c3c; }
+
+        .cert-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .cert-field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .cert-field-label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cert-field-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: 'Comfortaa', cursive;
+            transition: border-color 0.3s ease;
+        }
+
+        .cert-field-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .cert-preview-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .saved-cert-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .saved-cert-item:hover {
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+        }
+
+        .saved-cert-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .saved-cert-meta {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.2rem;
+        }
+
+        .cert-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .cert-delete-btn:hover { color: #e74c3c; background: #fff0f0; }
+
+        .empty-state-text {
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            color: #bbb;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        /* ================================================== */
+        /* SUB-TABS */
+        /* ================================================== */
+
+        .subtab-bar {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e8e8f0;
+            margin-bottom: 1.5rem;
+        }
+
+        .subtab-btn {
+            padding: 0.625rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            cursor: pointer;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.875rem;
+            color: #888;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .subtab-btn:hover { color: var(--accent-color); }
+
+        .subtab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .subtab-content {
+            display: none;
+        }
+
+        .subtab-content.active {
+            display: block;
+        }
+
+        .add-seminar-btn {
+            margin-bottom: 1.25rem;
+        }
+
+        .seminar-card {
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .seminar-card:hover {
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+        }
+
+        .seminar-card-body {
+            flex: 1;
+        }
+
+        .seminar-card-title {
+            font-family: 'Comfortaa', cursive;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .seminar-card-meta {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.2rem;
+        }
+
+        .seminar-card-notes {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.4rem;
+            font-style: italic;
+        }
+
+        .seminar-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .seminar-add-resume-btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.875rem;
+        }
+
+        .seminar-delete-btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.75rem;
+        }
+
+        .add-seminar-form {
+            display: none;
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .add-seminar-form.show {
+            display: block;
+        }
+
+        .form-section-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        /* ================================================== */
+        /* FILE MANAGER */
+        /* ================================================== */
+
+        .file-manager-toolbar {
+            margin-bottom: 1.5rem;
+        }
+
+        .file-manager-toolbar input[type="file"] {
+            display: none;
+        }
+
+        .file-table-wrapper {
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Crimson Text', serif;
+        }
+
+        .file-table thead {
+            background: #f8f8ff;
+        }
+
+        .file-table th {
+            padding: 0.875rem 1.25rem;
+            text-align: left;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e8e8f0;
+        }
+
+        .file-table td {
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid #f0f0f8;
+            font-size: 0.95rem;
+            color: #444;
+            vertical-align: middle;
+        }
+
+        .file-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .file-table tbody tr:hover td {
+            background: #fafbff;
+        }
+
+        .file-table-empty td {
+            text-align: center;
+            color: #bbb;
+            font-style: italic;
+            padding: 2.5rem;
+        }
+
+        .file-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .file-icon {
+            flex-shrink: 0;
+        }
+
+        .file-type-badge {
+            background: #eef0ff;
+            color: var(--accent-color);
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .file-action-btn {
+            padding: 0.35rem 0.875rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .file-action-delete {
+            background: #fff0f0;
+            color: #e74c3c;
+        }
+
+        .file-action-delete:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* ================================================== */
+        /* RESPONSIVE — DASHBOARD APP LAYOUT */
+        /* ================================================== */
+
+        @media (max-width: 768px) {
+            .logged-in-section.active {
+                flex-direction: column;
+            }
+
+            .app-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+            }
+
+            .app-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-header {
+                display: flex;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            .app-topbar {
+                display: flex;
+            }
+
+            .tab-inner {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .file-table th:nth-child(3),
+            .file-table td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.875rem;
+            }
+
+            .seminar-card {
+                flex-direction: column;
+            }
+
+            .cert-fields .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+        /* ================================================== */
+        /* RESUME BUILDER — TWO COLUMN LAYOUT */
+        /* ================================================== */
+
+        .tab-inner.resume-builder-layout {
+            max-width: 100%;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 0;
+            min-height: calc(100vh - 83px);
+        }
+
+        .resume-form-panel {
+            width: 420px;
+            flex-shrink: 0;
+            padding: 2.5rem 2rem;
+            overflow-y: auto;
+            border-right: 1px solid #e8e8f0;
+            background: #f9f9ff;
+        }
+
+        .resume-preview-panel {
+            flex: 1;
+            background: #e8e9f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1.5rem 3rem;
+            overflow-y: auto;
+        }
+
+        .preview-label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            align-self: flex-start;
+        }
+
+        /* ─── A4 Paper ─── */
+
+        .a4-paper {
+            width: 595px;
+            min-height: 842px;
+            background: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            border-radius: 2px;
+            padding: 52px 52px 48px;
+            font-family: 'Crimson Text', serif;
+            font-size: 11px;
+            color: #1a1a1a;
+            line-height: 1.5;
+            transition: all 0.2s ease;
+        }
+
+        .a4-header {
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #333;
+            margin-bottom: 14px;
+        }
+
+        .a4-name {
+            font-family: 'Comfortaa', cursive;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .a4-contact {
+            font-size: 10px;
+            color: #555;
+            letter-spacing: 0.3px;
+            transition: all 0.15s ease;
+        }
+
+        .a4-url {
+            font-size: 9.5px;
+            color: var(--accent-color);
+            margin-top: 2px;
+            transition: all 0.15s ease;
+        }
+
+        .a4-section {
+            margin-bottom: 14px;
+        }
+
+        .a4-section-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 3px;
+            margin-bottom: 7px;
+        }
+
+        .a4-section-body {
+            padding-left: 2px;
+        }
+
+        .a4-row-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .a4-bold {
+            font-weight: 700;
+            color: #111;
+            transition: all 0.15s ease;
+        }
+
+        .a4-italic {
+            font-style: italic;
+        }
+
+        .a4-right {
+            text-align: right;
+            font-size: 10px;
+        }
+
+        .a4-muted {
+            color: #555;
+            transition: all 0.15s ease;
+        }
+
+        .a4-desc {
+            margin-top: 3px;
+            color: #444;
+            line-height: 1.55;
+            transition: all 0.15s ease;
+        }
+
+        .a4-skill-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .a4-skill-label {
+            font-weight: 700;
+            color: #333;
+            min-width: 72px;
+            flex-shrink: 0;
+        }
+
+        /* ─── Seminar field hint ─── */
+        .field-hint {
+            display: block;
+            font-size: 0.75rem;
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        /* ─── Completed seminar card style ─── */
+        .seminar-card-done {
+            border-left: 3px solid #27ae60;
+        }
+
+        /* ─── Responsive: stack form + preview vertically on small screens ─── */
+
+        @media (max-width: 1100px) {
+            .tab-inner.resume-builder-layout {
+                flex-direction: column;
+            }
+            .resume-form-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e8e8f0;
+            }
+            .a4-paper {
+                width: 100%;
+                max-width: 595px;
+                min-height: unset;
+                padding: 32px 28px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .a4-paper {
+                padding: 24px 16px;
+                font-size: 10px;
+            }
+            .a4-name {
+                font-size: 18px;
+            }
+        }
+
+        /* ================================================== */
+        /* NOTIFICATION TOAST                                  */
+        /* ================================================== */
+
+        .notif-toast {
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27ae60;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            transition: bottom 0.4s cubic-bezier(0.4,0,0.2,1);
+            z-index: 2000;
+            white-space: nowrap;
+            max-width: 90vw;
+            text-align: center;
+        }
+        .notif-toast.show { bottom: 5rem; }
+        .notif-toast.error { background: #e74c3c; }
+
+        /* ================================================== */
+        /* DASHBOARD QUICK ACTIONS                             */
+        /* ================================================== */
+
+        .dash-quick-actions {
+            display: flex;
+            gap: 0.875rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* ================================================== */
+        /* PROFILE TAB                                         */
+        /* ================================================== */
+
+        .profile-hero-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 16px;
+            padding: 1.75rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(99,102,241,0.07);
+        }
+
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+            color: white;
+            font-family: 'Comfortaa', cursive;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .profile-hero-info {
+            flex: 1;
+        }
+
+        .profile-display-name {
+            font-family: 'Comfortaa', cursive;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-display-email {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: #888;
+            margin-bottom: 0.2rem;
+        }
+
+        .profile-display-meta {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.9rem;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .profile-edit-btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        /* ─── Profile Edit Form ─── */
+
+        .profile-edit-form {
+            display: none;
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 14px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .profile-edit-form.show { display: block; }
+
+        .profile-section-label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #eef0ff;
+            padding-bottom: 6px;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .profile-section-label:first-child { margin-top: 0; }
+
+        .profile-section-hint {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #aaa;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .field-label {
+            display: block;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+
+        .field-hint-inline {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            color: #aaa;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+        }
+
+        .add-entry-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.25rem 0.75rem;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .add-entry-btn:hover { background: var(--accent-hover); }
+
+        /* Profile entries (edu / project blocks) */
+        .profile-entry {
+            background: #fafbff;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 0.875rem;
+        }
+
+        .profile-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.875rem;
+        }
+
+        .profile-entry-num {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .entry-remove-btn {
+            background: none;
+            border: 1px solid #fcc;
+            color: #e74c3c;
+            border-radius: 5px;
+            padding: 0.2rem 0.6rem;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .entry-remove-btn:hover { background: #e74c3c; color: white; }
+
+        /* Readonly items in profile form */
+        .profile-readonly-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: #fafbff;
+            border: 1px solid #eef0ff;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .pro-badge { font-size: 1.1rem; flex-shrink: 0; }
+
+        .profile-save-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e8e8f0;
+        }
+
+        /* ─── Profile View Mode ─── */
+        .profile-view { margin-top: 0.5rem; }
+
+        .pv-section {
+            background: white;
+            border: 1px solid #e8e8f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pv-section-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.875rem;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eef0ff;
+        }
+
+        .pv-text {
+            font-family: 'Crimson Text', serif;
+            color: #444;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .pv-entry {
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f0f1ff;
+        }
+        .pv-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .pv-entry strong { font-family: 'Comfortaa', cursive; font-size: 0.9rem; color: #333; display: block; margin-bottom: 0.2rem; }
+        .pv-meta { font-family: 'Crimson Text', serif; font-size: 0.9rem; color: #888; font-style: italic; }
+
+        /* ================================================== */
+        /* RESUME BUILDER — FORM TOPBAR + GENERATE BTN        */
+        /* ================================================== */
+
+        .resume-form-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .generate-btn {
+            white-space: nowrap;
+            background: linear-gradient(135deg, var(--accent-color), #7c3aed);
+            border-color: transparent;
+            font-size: 0.85rem;
+            padding: 0.625rem 1.25rem;
+            flex-shrink: 0;
+        }
+        .generate-btn:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #6d28d9);
+            border-color: transparent;
+        }
+
+        /* ─── Resume multi-entries ─── */
+        .resume-entry {
+            background: #fafbff;
+            border: 1px solid #e8e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.875rem;
+        }
+
+        .resume-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .resume-entry-label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .add-more-btn {
+            width: 100%;
+            padding: 0.625rem;
+            background: none;
+            border: 2px dashed #c9caf0;
+            border-radius: 8px;
+            color: var(--accent-color);
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+        }
+        .add-more-btn:hover { background: #f0f1ff; border-color: var(--accent-color); }
+
+        /* Seminars readonly in resume accordion */
+        .seminars-readonly-list { padding: 0.25rem 0; }
+        .seminar-readonly-item {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.5rem 0.25rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: #444;
+            border-bottom: 1px solid #f0f1ff;
+        }
+        .seminar-readonly-item:last-child { border-bottom: none; }
+
+        /* Badge in accordion header */
+        .accordion-badge {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #27ae60;
+            background: #e8f5e9;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+            margin-right: 0.5rem;
+        }
+
+        /* ================================================== */
+        /* RESPONSIVE ADDITIONS                                */
+        /* ================================================== */
+
+        @media (max-width: 768px) {
+            .profile-hero-card { flex-wrap: wrap; }
+            .profile-edit-btn { width: 100%; }
+            .resume-form-topbar { flex-direction: column; }
+            .generate-btn { width: 100%; text-align: center; }
+            .dash-quick-actions { flex-direction: column; }
+        }

@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder - Auto Update and Generation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<link rel="stylesheet" href="styles.css">
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text">
+                <h1>Resume builder</h1>
+                <p>auto update and generation</p>
+            </div>
+        </div>
+        <div class="header-actions" id="headerActions">
+            <button class="btn" onclick="showSignup()">sign up</button>
+            <button class="btn btn-dark" onclick="showLogin()">Login</button>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container" id="mainContainer">
+        <div class="main-section">
+            <div class="hero-content">
+                <h1>Automatically Build and Update Your <span class="highlight">Academic Resume</span></h1>
+                <p>Sync publications from ORCID, manage your academic profile, and export a clean PDF resume in minutes</p>
+            </div>
+        </div>
+        <div class="login-section" id="loginSection">
+            <div class="auth-container">
+                <div class="auth-left">
+                    <div class="auth-title"><div class="auth-icon">👤</div><h2>LOGIN</h2></div>
+                    <div class="oauth-buttons">
+                        <button class="btn-google" onclick="handleGoogleLogin()" id="googleLoginBtn">
+                            <span style="font-weight:700;font-size:1.2rem;">G</span><span>Login with google</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-right">
+                    <div class="error-message" id="loginError"></div>
+                    <form onsubmit="handleLogin(event)" id="loginForm">
+                        <div class="form-group"><input type="email" id="loginEmail" placeholder="email address" required></div>
+                        <div class="form-group"><input type="password" id="loginPassword" placeholder="password" required minlength="6"></div>
+                        <a href="forgot-password.html" target="_blank" class="forgot-link">Forgot Password?</a>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-action" id="loginSubmitBtn">login</button>
+                            <button type="button" class="btn-action btn-cancel" onclick="hideAuth()">cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="login-section" id="signupSection" style="display:none;">
+            <div class="auth-container">
+                <div class="auth-left">
+                    <div class="auth-title"><div class="auth-icon">➕</div><h2>Sign up</h2></div>
+                    <div class="oauth-buttons">
+                        <button class="btn-google" onclick="handleGoogleSignup()" id="googleSignupBtn">
+                            <span style="font-weight:700;font-size:1.2rem;">G</span><span>Continue with google</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-right">
+                    <div class="error-message" id="signupError"></div>
+                    <div class="success-message" id="signupSuccess"></div>
+                    <form onsubmit="handleSignup(event)" id="signupForm">
+                        <div class="form-row">
+                            <div class="form-group"><input type="text" id="signupFirstName" placeholder="First name" required></div>
+                            <div class="form-group"><input type="text" id="signupLastName" placeholder="Last Name" required></div>
+                        </div>
+                        <div class="form-group"><input type="email" id="signupEmail" placeholder="email id" required></div>
+                        <div class="form-group"><input type="password" id="signupPassword" placeholder="password" required minlength="6"></div>
+                        <div class="form-group"><input type="password" id="signupConfirmPassword" placeholder="confirm password" required minlength="6"></div>
+                        <div class="form-row">
+                            <div class="form-group"><input type="text" id="signupVidwan" placeholder="Vidwan Id (optional)"></div>
+                            <div class="form-group"><input type="tel" id="signupPhone" placeholder="phone no (optional)"></div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-action" id="signupSubmitBtn">Sign up</button>
+                            <button type="button" class="btn-action btn-cancel" onclick="hideAuth()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- LOGGED IN VIEW -->
+    <div class="logged-in-section" id="loggedInSection">
+
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item active" onclick="switchTab('dashboard',this)">
+                    <span class="sidebar-icon">⊞</span><span class="sidebar-label">Dashboard</span>
+                </button>
+                <button class="sidebar-item" onclick="switchTab('profile',this)">
+                    <span class="sidebar-icon">👤</span><span class="sidebar-label">Profile</span>
+                </button>
+                <button class="sidebar-item" onclick="switchTab('resume-builder',this)">
+                    <span class="sidebar-icon">📄</span><span class="sidebar-label">Resume Builder</span>
+                </button>
+                <button class="sidebar-item" onclick="switchTab('certificates',this)">
+                    <span class="sidebar-icon">🏅</span><span class="sidebar-label">Certificates</span>
+                </button>
+                <button class="sidebar-item" onclick="switchTab('seminars',this)">
+                    <span class="sidebar-icon">🎓</span><span class="sidebar-label">Seminars</span>
+                </button>
+                <button class="sidebar-item" onclick="switchTab('file-manager',this)">
+                    <span class="sidebar-icon">🗂</span><span class="sidebar-label">File Manager</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-item sidebar-logout" onclick="showLogoutToast()">
+                    <span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="app-main">
+
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()">
+                    <span></span><span></span><span></span>
+                </button>
+                <span class="app-topbar-title" id="topbarTitle">Dashboard</span>
+            </div>
+
+            <!-- ─── DASHBOARD ─── -->
+            <div class="tab-content active" id="tab-dashboard">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">Dashboard</h2>
+                    <p class="tab-subtext">Welcome back! Here's a quick overview of your academic profile.</p>
+                    <div class="dashboard-cards">
+                        <div class="dash-card">
+                            <div class="dash-card-icon">👤</div>
+                            <div class="dash-card-label">Profile Name</div>
+                            <div class="dash-card-value" id="dc_profile">—</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-card-icon">📄</div>
+                            <div class="dash-card-label">Resume Sections</div>
+                            <div class="dash-card-value">5</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-card-icon">🏅</div>
+                            <div class="dash-card-label">Certificates</div>
+                            <div class="dash-card-value" id="dc_certs">0</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-card-icon">🎓</div>
+                            <div class="dash-card-label">Seminars</div>
+                            <div class="dash-card-value" id="dc_seminars">0</div>
+                        </div>
+                    </div>
+                    <div class="dash-quick-actions">
+                        <button class="btn btn-dark" onclick="switchTab('profile', getSidebarBtn('profile'))">✏ Edit Profile</button>
+                        <button class="btn btn-dark" onclick="switchTab('resume-builder', getSidebarBtn('resume-builder'))">📄 Open Resume Builder</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── PROFILE ─── -->
+            <div class="tab-content" id="tab-profile">
+                <div class="tab-inner">
+
+                    <div class="profile-hero-card">
+                        <div class="profile-avatar" id="profileAvatar">?</div>
+                        <div class="profile-hero-info">
+                            <div class="profile-display-name" id="profileDisplayName">Your Name</div>
+                            <div class="profile-display-email" id="profileDisplayEmail">email@example.com</div>
+                            <div class="profile-display-meta" id="profileDisplayMeta"></div>
+                        </div>
+                        <button class="btn btn-dark profile-edit-btn" id="profileEditToggle" onclick="toggleProfileEdit()">✏ Edit Profile</button>
+                    </div>
+
+                    <!-- Edit form -->
+                    <div class="profile-edit-form" id="profileEditForm">
+
+                        <div class="profile-section-label">Basic Info</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="field-label">Full Name</label>
+                                <input type="text" id="pf_name" placeholder="Full Name" oninput="liveUpdateProfile()">
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">Phone</label>
+                                <input type="tel" id="pf_phone" placeholder="Phone Number" oninput="liveUpdateProfile()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="field-label">Location</label>
+                                <input type="text" id="pf_location" placeholder="City, Country" oninput="liveUpdateProfile()">
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">LinkedIn / Portfolio URL</label>
+                                <input type="url" id="pf_url" placeholder="https://..." oninput="liveUpdateProfile()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="field-label">Bio / Summary</label>
+                            <textarea class="resume-textarea" id="pf_bio" placeholder="A short professional summary..." rows="3" oninput="liveUpdateProfile()"></textarea>
+                        </div>
+
+                        <div class="profile-section-label">
+                            Education
+                            <button class="add-entry-btn" onclick="addProfileEntry('edu')">+ Add</button>
+                        </div>
+                        <div id="pf_edu_list"></div>
+
+                        <div class="profile-section-label">Skills</div>
+                        <div class="form-group">
+                            <label class="field-label">Technical Skills <span class="field-hint-inline">(comma separated)</span></label>
+                            <input type="text" id="pf_techskills" placeholder="Python, React, SQL..." oninput="liveUpdateProfile()">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="field-label">Tools &amp; Technologies</label>
+                                <input type="text" id="pf_tools" placeholder="Git, Docker..." oninput="liveUpdateProfile()">
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">Soft Skills</label>
+                                <input type="text" id="pf_softskills" placeholder="Leadership..." oninput="liveUpdateProfile()">
+                            </div>
+                        </div>
+
+                        <div class="profile-section-label">
+                            Projects
+                            <button class="add-entry-btn" onclick="addProfileEntry('project')">+ Add</button>
+                        </div>
+                        <div id="pf_project_list"></div>
+
+                        <div class="profile-section-label">
+                            Certificates
+                            <span class="profile-section-hint">managed from Certificates tab</span>
+                        </div>
+                        <div id="pf_certs_readonly"></div>
+
+                        <div class="profile-section-label">
+                            Completed Seminars
+                            <span class="profile-section-hint">auto-synced from Seminars tab</span>
+                        </div>
+                        <div id="pf_seminars_readonly"></div>
+
+                        <div class="profile-save-bar">
+                            <button class="btn btn-dark" onclick="saveProfile()">💾 Save Profile</button>
+                            <button class="btn" onclick="toggleProfileEdit()">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- View mode -->
+                    <div class="profile-view" id="profileView">
+                        <div id="pv_bio_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Summary</div>
+                            <div id="pv_bio" class="pv-text"></div>
+                        </div>
+                        <div id="pv_edu_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Education</div>
+                            <div id="pv_edu_list" class="pv-list"></div>
+                        </div>
+                        <div id="pv_skills_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Skills</div>
+                            <div id="pv_skills" class="pv-text"></div>
+                        </div>
+                        <div id="pv_project_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Projects</div>
+                            <div id="pv_project_list" class="pv-list"></div>
+                        </div>
+                        <div id="pv_certs_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Certificates</div>
+                            <div id="pv_certs_list" class="pv-list"></div>
+                        </div>
+                        <div id="pv_seminars_section" class="pv-section" style="display:none">
+                            <div class="pv-section-title">Completed Seminars</div>
+                            <div id="pv_seminars_list" class="pv-list"></div>
+                        </div>
+                        <p id="pv_empty" class="empty-state-text">No profile info yet. Click <strong>Edit Profile</strong> to get started.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ─── RESUME BUILDER ─── -->
+            <div class="tab-content" id="tab-resume-builder">
+                <div class="tab-inner resume-builder-layout">
+
+                    <div class="resume-form-panel">
+                        <div class="resume-form-topbar">
+                            <div>
+                                <h2 class="tab-heading">Resume Builder</h2>
+                                <p class="tab-subtext">Edit directly or generate from your profile.</p>
+                            </div>
+                            <button class="btn btn-dark generate-btn" onclick="generateFromProfile()">⚡ Generate from Profile</button>
+                        </div>
+
+                        <!-- Personal Info -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Personal Info</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body open">
+                                <div class="form-row">
+                                    <div class="form-group"><input type="text" id="rv_name" placeholder="Full Name" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="email" id="rv_email" placeholder="Email Address" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><input type="tel" id="rv_phone" placeholder="Phone Number" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="text" id="rv_location" placeholder="Location" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-group"><input type="url" id="rv_url" placeholder="LinkedIn / Portfolio URL" oninput="updatePreview()"></div>
+                                <div class="form-group">
+                                    <textarea class="resume-textarea" id="rv_summary" placeholder="Professional Summary..." rows="2" oninput="updatePreview()"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Education (multi) -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Education</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="rv_edu_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('edu')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Skills</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="form-group"><input type="text" id="rv_techskills" placeholder="Technical Skills (comma separated)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_tools" placeholder="Tools &amp; Technologies" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_softskills" placeholder="Soft Skills" oninput="updatePreview()"></div>
+                            </div>
+                        </div>
+
+                        <!-- Projects (multi) -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Projects</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="rv_project_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('project')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Certificates (multi) -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Certificates</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="rv_cert_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('cert')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Seminars (auto-synced, read-only) -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Seminars</span>
+                                <span class="accordion-badge">auto-synced</span>
+                                <span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="rv_seminars_display" class="seminars-readonly-list">
+                                    <p class="empty-state-text" style="padding:0.5rem 0;font-size:0.85rem">Complete seminars in the Seminars tab to auto-populate here.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="resume-export-bar">
+                            <button class="btn btn-dark export-btn">⬇ Export Resume as PDF</button>
+                        </div>
+                    </div>
+
+                    <!-- Live A4 Preview -->
+                    <div class="resume-preview-panel">
+                        <div class="preview-label">Live Preview</div>
+                        <div class="a4-paper" id="a4Preview">
+                            <div class="a4-header">
+                                <div class="a4-name" id="prev_name">Your Full Name</div>
+                                <div class="a4-contact" id="prev_contact">email | phone | location</div>
+                                <div class="a4-url" id="prev_url" style="display:none"></div>
+                            </div>
+                            <div class="a4-section" id="prev_summary_section" style="display:none">
+                                <div class="a4-section-title">Summary</div>
+                                <div class="a4-section-body a4-desc" id="prev_summary"></div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Education</div>
+                                <div class="a4-section-body" id="prev_edu_body">
+                                    <div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div>
+                                </div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Skills</div>
+                                <div class="a4-section-body">
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Technical:</span><span id="prev_techskills" class="a4-muted">—</span></div>
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Tools:</span><span id="prev_tools" class="a4-muted">—</span></div>
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Soft:</span><span id="prev_softskills" class="a4-muted">—</span></div>
+                                </div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Projects</div>
+                                <div class="a4-section-body" id="prev_projects_body">
+                                    <div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div>
+                                </div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Certificates</div>
+                                <div class="a4-section-body" id="prev_certs_body">
+                                    <div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div>
+                                </div>
+                            </div>
+                            <div class="a4-section" id="prev_seminars_section" style="display:none">
+                                <div class="a4-section-title">Seminars &amp; Workshops</div>
+                                <div class="a4-section-body" id="prev_seminars_body"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ─── CERTIFICATES ─── -->
+            <div class="tab-content" id="tab-certificates">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">Certificates</h2>
+                    <p class="tab-subtext">Upload certificates — saved data appears in your profile and resume automatically.</p>
+                    <div class="upload-zone" onclick="document.getElementById('certFileInput').click()">
+                        <div class="upload-icon">⬆</div>
+                        <p class="upload-label">Click to upload or drag &amp; drop</p>
+                        <p class="upload-hint">Supports PDF and image files (PNG, JPG)</p>
+                        <input type="file" id="certFileInput" accept=".pdf,.png,.jpg,.jpeg" onchange="handleCertUpload(event)">
+                    </div>
+                    <div class="cert-preview-card" id="certPreviewCard">
+                        <div class="cert-preview-header">
+                            <span class="cert-preview-badge">✓ Extracted Data</span>
+                            <button class="cert-preview-close" onclick="closeCertPreview()">✕</button>
+                        </div>
+                        <div class="cert-fields">
+                            <div class="cert-field-group">
+                                <label class="cert-field-label">Certificate Title</label>
+                                <input type="text" class="cert-field-input" id="certTitle" placeholder="Auto-extracted title">
+                            </div>
+                            <div class="cert-field-group">
+                                <label class="cert-field-label">Recipient Name</label>
+                                <input type="text" class="cert-field-input" id="certName" placeholder="Auto-extracted name">
+                            </div>
+                            <div class="form-row">
+                                <div class="cert-field-group" style="flex:1">
+                                    <label class="cert-field-label">Issuing Organization</label>
+                                    <input type="text" class="cert-field-input" id="certOrg" placeholder="Organization">
+                                </div>
+                                <div class="cert-field-group" style="flex:1">
+                                    <label class="cert-field-label">Year</label>
+                                    <input type="text" class="cert-field-input" id="certYear" placeholder="Year">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="cert-preview-actions">
+                            <button class="btn btn-dark" onclick="confirmCertificate()">✓ Confirm &amp; Save</button>
+                            <button class="btn" onclick="closeCertPreview()">Discard</button>
+                        </div>
+                    </div>
+                    <div class="saved-certs" id="savedCertsList">
+                        <p class="empty-state-text">No certificates saved yet. Upload one above.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── SEMINARS ─── -->
+            <div class="tab-content" id="tab-seminars">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">Seminars</h2>
+                    <p class="tab-subtext">Add upcoming seminars. When completed they auto-populate your resume and profile.</p>
+                    <div class="subtab-bar">
+                        <button class="subtab-btn active" onclick="switchSubtab('seminars','completed',this)">Completed</button>
+                        <button class="subtab-btn" onclick="switchSubtab('seminars','queue',this)">On Queue</button>
+                    </div>
+                    <div class="subtab-content active" id="subtab-seminars-completed">
+                        <div id="completedSeminarsList">
+                            <p class="empty-state-text">No completed seminars yet. Add upcoming ones in the On Queue tab.</p>
+                        </div>
+                    </div>
+                    <div class="subtab-content" id="subtab-seminars-queue">
+                        <button class="btn btn-dark add-seminar-btn" onclick="showAddSeminarForm()">+ Add Seminar</button>
+                        <div class="add-seminar-form" id="addSeminarForm">
+                            <h3 class="form-section-title">New Seminar</h3>
+                            <div class="form-group"><input type="text" id="seminarTitle" placeholder="Seminar Title"></div>
+                            <div class="form-row">
+                                <div class="form-group"><input type="text" id="seminarOrg" placeholder="Organizer / Institution"></div>
+                                <div class="form-group">
+                                    <input type="date" id="seminarDate">
+                                    <small class="field-hint">Past date = auto-moved to Completed + added to Resume</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <textarea class="resume-textarea" id="seminarNotes" placeholder="Notes or description..." rows="2"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-dark" onclick="saveSeminar()">Save</button>
+                                <button class="btn btn-cancel" onclick="hideAddSeminarForm()">Cancel</button>
+                            </div>
+                        </div>
+                        <div id="queueSeminarsList">
+                            <p class="empty-state-text">No seminars on queue.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── FILE MANAGER ─── -->
+            <div class="tab-content" id="tab-file-manager">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">File Manager</h2>
+                    <p class="tab-subtext">All your uploaded files in one place.</p>
+                    <div class="file-manager-toolbar">
+                        <button class="btn btn-dark" onclick="document.getElementById('fmFileInput').click()">⬆ Upload File</button>
+                        <input type="file" id="fmFileInput" onchange="handleFMUpload(event)">
+                    </div>
+                    <div class="file-table-wrapper">
+                        <table class="file-table">
+                            <thead><tr><th>File Name</th><th>Type</th><th>Date Added</th><th>Actions</th></tr></thead>
+                            <tbody id="fileTableBody">
+                                <tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /app-main -->
+    </div><!-- /logged-in-section -->
+
+    <!-- LOGOUT TOAST -->
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div class="notif-toast" id="notifToast"></div>
+
+
+    <script>
+    // ════════════════════════════════════
+    // SUPABASE CONFIG
+    // ════════════════════════════════════
+    const SUPABASE_URL     = 'https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient   = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ════════════════════════════════════
+    // STATE
+    // ════════════════════════════════════
+    let currentView = 'home';
+    let currentUser = null;
+
+    let profile = {
+        name:'', email:'', phone:'', location:'', url:'', bio:'',
+        techskills:'', tools:'', softskills:'',
+        edu:[], projects:[]
+    };
+
+    let resumeEduEntries     = [];
+    let resumeProjectEntries = [];
+    let resumeCertEntries    = [];
+    let savedCertificates    = [];
+    let seminars             = { completed:[], queue:[] };
+    let managedFiles         = [];
+
+    // ════════════════════════════════════
+    // AUTH — UNTOUCHED
+    // ════════════════════════════════════
+    async function initializeAuth() {
+        const { data:{ session } } = await supabaseClient.auth.getSession();
+        if (session) { currentUser = session.user; showDashboard(); }
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN')       { currentUser = session.user; showDashboard(); }
+            else if (event === 'SIGNED_OUT') { currentUser = null; resetToHome(); }
+        });
+    }
+    initializeAuth();
+
+    function showLogin() {
+        currentView = 'login';
+        document.getElementById('mainContainer').classList.add('login-active');
+        document.getElementById('loginSection').style.display = 'flex';
+        document.getElementById('signupSection').style.display = 'none';
+        clearMessages();
+    }
+    function showSignup() {
+        currentView = 'signup';
+        document.getElementById('mainContainer').classList.add('login-active');
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('signupSection').style.display = 'flex';
+        clearMessages();
+    }
+    function hideAuth() {
+        currentView = 'home';
+        document.getElementById('mainContainer').classList.remove('login-active');
+        clearMessages();
+    }
+    function clearMessages() {
+        document.querySelectorAll('.error-message,.success-message').forEach(el => { el.classList.remove('show'); el.textContent=''; });
+    }
+    function showError(id, msg)   { const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+    function showSuccess(id, msg) { const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+
+    async function handleLogin(e) {
+        e.preventDefault(); clearMessages();
+        const email=document.getElementById('loginEmail').value, password=document.getElementById('loginPassword').value;
+        const btn=document.getElementById('loginSubmitBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Logging in...';
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+        } catch (err) { showError('loginError', err.message||'Login failed.'); btn.disabled=false; btn.textContent='login'; }
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault(); clearMessages();
+        const fn=document.getElementById('signupFirstName').value, ln=document.getElementById('signupLastName').value;
+        const email=document.getElementById('signupEmail').value, pw=document.getElementById('signupPassword').value;
+        const cpw=document.getElementById('signupConfirmPassword').value;
+        const vidwan=document.getElementById('signupVidwan').value, phone=document.getElementById('signupPhone').value;
+        const btn=document.getElementById('signupSubmitBtn');
+        if (pw!==cpw) { showError('signupError','Passwords do not match'); return; }
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Creating account...';
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({ email, password:pw,
+                options:{ data:{ first_name:fn, last_name:ln, full_name:`${fn} ${ln}`, vidwan_id:vidwan, phone } } });
+            if (error) throw error;
+            if (data.user && !data.session) { showSuccess('signupSuccess','Account created! Check your email.'); document.getElementById('signupForm').reset(); }
+        } catch (err) { showError('signupError', err.message||'Signup failed.'); }
+        finally { btn.disabled=false; btn.textContent='Sign up'; }
+    }
+
+    async function handleGoogleLogin() {
+        const btn=document.getElementById('googleLoginBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Redirecting...';
+        try {
+            const { error } = await supabaseClient.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin+window.location.pathname } });
+            if (error) throw error;
+        } catch (err) { showError('loginError','Google login failed.'); btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span> <span>Login with google</span>'; }
+    }
+
+    async function handleGoogleSignup() {
+        const btn=document.getElementById('googleSignupBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Redirecting...';
+        try {
+            const { error } = await supabaseClient.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin+window.location.pathname } });
+            if (error) throw error;
+        } catch (err) { showError('signupError','Google signup failed.'); btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span> <span>Continue with google</span>'; }
+    }
+
+    function showDashboard() {
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('loggedInSection').classList.add('active');
+        const email = currentUser?.email||'';
+        document.getElementById('headerActions').innerHTML = `<span class="user-email">${email}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        if (currentUser?.email) profile.email = currentUser.email;
+        if (currentUser?.user_metadata?.full_name) profile.name = profile.name || currentUser.user_metadata.full_name;
+        renderProfileHero();
+        initResumeEntries();
+        updatePreview();
+    }
+
+    function showLogoutToast() { document.getElementById('logoutToast').classList.add('show'); }
+
+    async function confirmLogout() {
+        document.getElementById('logoutToast').classList.remove('show');
+        try { const { error } = await supabaseClient.auth.signOut(); if (error) throw error; }
+        catch (err) { alert('Logout failed. Please try again.'); }
+    }
+    function cancelLogout() { document.getElementById('logoutToast').classList.remove('show'); }
+
+    function resetToHome() {
+        document.getElementById('loggedInSection').classList.remove('active');
+        document.getElementById('mainContainer').style.display = 'block';
+        hideAuth();
+        document.getElementById('headerActions').innerHTML = `<button class="btn" onclick="showSignup()">sign up</button><button class="btn btn-dark" onclick="showLogin()">Login</button>`;
+    }
+
+    // ════════════════════════════════════
+    // NOTIFICATION TOAST
+    // ════════════════════════════════════
+    let _notifTimer;
+    function showNotif(msg, type='success') {
+        const t = document.getElementById('notifToast');
+        t.textContent = msg;
+        t.className = 'notif-toast show ' + type;
+        clearTimeout(_notifTimer);
+        _notifTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ════════════════════════════════════
+    // SIDEBAR + TAB
+    // ════════════════════════════════════
+    const TAB_TITLES = { dashboard:'Dashboard', profile:'Profile', 'resume-builder':'Resume Builder', certificates:'Certificates', seminars:'Seminars', 'file-manager':'File Manager' };
+
+    function openSidebar()  { document.getElementById('appSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); }
+    function closeSidebar() { document.getElementById('appSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+    function getSidebarBtn(tabId) {
+        return [...document.querySelectorAll('.sidebar-item')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+tabId+"'"));
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+        document.getElementById('tab-'+tabId).classList.add('active');
+        const activeBtn = btn || getSidebarBtn(tabId);
+        if (activeBtn) activeBtn.classList.add('active');
+        document.getElementById('topbarTitle').textContent = TAB_TITLES[tabId]||'';
+        if (tabId==='seminars') checkSeminarDates();
+        if (tabId==='profile')  { renderProfileReadonlySections(); if (!profileEditing) renderProfileView(); }
+        if (tabId==='resume-builder') { renderResumeEntries(); updatePreview(); }
+        closeSidebar();
+    }
+
+    // ════════════════════════════════════
+    // ACCORDION
+    // ════════════════════════════════════
+    function toggleAccordion(btn) {
+        const body = btn.nextElementSibling;
+        const arrow = btn.querySelector('.accordion-arrow');
+        const open = body.classList.contains('open');
+        body.classList.toggle('open', !open);
+        if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    // ════════════════════════════════════
+    // SUB-TABS
+    // ════════════════════════════════════
+    function switchSubtab(group, id, btn) {
+        document.querySelectorAll('#tab-'+group+' .subtab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#tab-'+group+' .subtab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('subtab-'+group+'-'+id).classList.add('active');
+    }
+
+    // ════════════════════════════════════
+    // PROFILE
+    // ════════════════════════════════════
+    let profileEditing = false;
+
+    function toggleProfileEdit() {
+        profileEditing = !profileEditing;
+        const form = document.getElementById('profileEditForm');
+        const view = document.getElementById('profileView');
+        const btn  = document.getElementById('profileEditToggle');
+        if (profileEditing) {
+            form.classList.add('show');
+            view.style.display = 'none';
+            btn.textContent = '✕ Close Edit';
+            populateProfileForm();
+        } else {
+            form.classList.remove('show');
+            view.style.display = 'block';
+            btn.textContent = '✏ Edit Profile';
+            renderProfileView();
+        }
+    }
+
+    function populateProfileForm() {
+        ['name','phone','location','url','bio','techskills','tools','softskills'].forEach(f => {
+            const el = document.getElementById('pf_'+f);
+            if (el) el.value = profile[f]||'';
+        });
+        renderProfileEduList();
+        renderProfileProjectList();
+        renderProfileReadonlySections();
+    }
+
+    function liveUpdateProfile() {
+        ['name','phone','location','url','bio','techskills','tools','softskills'].forEach(f => {
+            const el = document.getElementById('pf_'+f);
+            if (el) profile[f] = el.value;
+        });
+        renderProfileHero();
+    }
+
+    function saveProfile() {
+        liveUpdateProfile();
+        profile.edu = [];
+        document.querySelectorAll('#pf_edu_list .profile-entry').forEach(el => {
+            profile.edu.push({
+                institution: el.querySelector('[data-field="institution"]')?.value||'',
+                degree:      el.querySelector('[data-field="degree"]')?.value||'',
+                branch:      el.querySelector('[data-field="branch"]')?.value||'',
+                year:        el.querySelector('[data-field="year"]')?.value||'',
+                cgpa:        el.querySelector('[data-field="cgpa"]')?.value||''
+            });
+        });
+        profile.projects = [];
+        document.querySelectorAll('#pf_project_list .profile-entry').forEach(el => {
+            profile.projects.push({
+                title: el.querySelector('[data-field="title"]')?.value||'',
+                tech:  el.querySelector('[data-field="tech"]')?.value||'',
+                desc:  el.querySelector('[data-field="desc"]')?.value||''
+            });
+        });
+        showNotif('Profile saved successfully!');
+        toggleProfileEdit();
+        updateDashboardCards();
+    }
+
+    function renderProfileHero() {
+        const name  = profile.name || currentUser?.user_metadata?.full_name || 'Your Name';
+        const email = profile.email || currentUser?.email || '';
+        document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase()||'?';
+        document.getElementById('profileDisplayName').textContent = name;
+        document.getElementById('profileDisplayEmail').textContent = email;
+        document.getElementById('profileDisplayMeta').textContent = [profile.phone, profile.location].filter(Boolean).join(' · ');
+        const dc = document.getElementById('dc_profile');
+        if (dc) dc.textContent = name.split(' ')[0]||'—';
+    }
+
+    function addProfileEntry(type) {
+        if (type==='edu') profile.edu.push({ institution:'', degree:'', branch:'', year:'', cgpa:'' });
+        else              profile.projects.push({ title:'', tech:'', desc:'' });
+        type==='edu' ? renderProfileEduList() : renderProfileProjectList();
+    }
+
+    function removeProfileEntry(type, idx) {
+        if (type==='edu') { profile.edu.splice(idx,1); renderProfileEduList(); }
+        else              { profile.projects.splice(idx,1); renderProfileProjectList(); }
+    }
+
+    function renderProfileEduList() {
+        const c = document.getElementById('pf_edu_list');
+        if (!profile.edu.length) { c.innerHTML='<p class="empty-state-text" style="padding:0.5rem 0">No education entries. Click + Add above.</p>'; return; }
+        c.innerHTML = profile.edu.map((e,i) => `
+            <div class="profile-entry" data-idx="${i}">
+                <div class="profile-entry-header">
+                    <span class="profile-entry-num">Education ${i+1}</span>
+                    <button class="entry-remove-btn" onclick="removeProfileEntry('edu',${i})">✕ Remove</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" data-field="institution" placeholder="Institution Name" value="${e.institution||''}"></div>
+                    <div class="form-group"><input type="text" data-field="degree" placeholder="Degree / Course" value="${e.degree||''}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" data-field="branch" placeholder="Branch / Specialization" value="${e.branch||''}"></div>
+                    <div class="form-group"><input type="text" data-field="year" placeholder="Year (e.g. 2022–2024)" value="${e.year||''}"></div>
+                </div>
+                <div class="form-group"><input type="text" data-field="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa||''}"></div>
+            </div>`).join('');
+    }
+
+    function renderProfileProjectList() {
+        const c = document.getElementById('pf_project_list');
+        if (!profile.projects.length) { c.innerHTML='<p class="empty-state-text" style="padding:0.5rem 0">No projects. Click + Add above.</p>'; return; }
+        c.innerHTML = profile.projects.map((p,i) => `
+            <div class="profile-entry" data-idx="${i}">
+                <div class="profile-entry-header">
+                    <span class="profile-entry-num">Project ${i+1}</span>
+                    <button class="entry-remove-btn" onclick="removeProfileEntry('project',${i})">✕ Remove</button>
+                </div>
+                <div class="form-group"><input type="text" data-field="title" placeholder="Project Title" value="${p.title||''}"></div>
+                <div class="form-group"><input type="text" data-field="tech" placeholder="Technologies Used" value="${p.tech||''}"></div>
+                <div class="form-group"><textarea class="resume-textarea" data-field="desc" placeholder="Description..." rows="2">${p.desc||''}</textarea></div>
+            </div>`).join('');
+    }
+
+    function renderProfileReadonlySections() {
+        const certsEl = document.getElementById('pf_certs_readonly');
+        if (certsEl) {
+            certsEl.innerHTML = savedCertificates.length
+                ? savedCertificates.map(c=>`<div class="profile-readonly-item"><span class="pro-badge">🏅</span><span><strong>${c.title}</strong>${c.org?' — '+c.org:''}${c.year?', '+c.year:''}</span></div>`).join('')
+                : '<p class="empty-state-text" style="padding:0.5rem 0">No certificates saved yet.</p>';
+        }
+        const semEl = document.getElementById('pf_seminars_readonly');
+        if (semEl) {
+            semEl.innerHTML = seminars.completed.length
+                ? seminars.completed.map(s=>`<div class="profile-readonly-item"><span class="pro-badge">🎓</span><span><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</span></div>`).join('')
+                : '<p class="empty-state-text" style="padding:0.5rem 0">No completed seminars yet.</p>';
+        }
+    }
+
+    function renderProfileView() {
+        let has = false;
+        const show = (id, val) => { const el=document.getElementById(id); if(el) el.style.display=val?'block':'none'; };
+
+        if (profile.bio) { document.getElementById('pv_bio').textContent=profile.bio; show('pv_bio_section',true); has=true; }
+        else show('pv_bio_section',false);
+
+        if (profile.edu.length) {
+            document.getElementById('pv_edu_list').innerHTML = profile.edu.map(e=>`
+                <div class="pv-entry">
+                    <strong>${e.institution||'—'}</strong>
+                    <span class="pv-meta">${[e.degree,e.branch].filter(Boolean).join(', ')}${e.year?' · '+e.year:''}${e.cgpa?' · '+e.cgpa:''}</span>
+                </div>`).join('');
+            show('pv_edu_section',true); has=true;
+        } else show('pv_edu_section',false);
+
+        const skills=[profile.techskills,profile.tools,profile.softskills].filter(Boolean).join(' · ');
+        if (skills) { document.getElementById('pv_skills').textContent=skills; show('pv_skills_section',true); has=true; }
+        else show('pv_skills_section',false);
+
+        if (profile.projects.length) {
+            document.getElementById('pv_project_list').innerHTML = profile.projects.map(p=>`
+                <div class="pv-entry">
+                    <strong>${p.title||'—'}</strong>
+                    <span class="pv-meta">${p.tech?p.tech+' — ':''}${p.desc||''}</span>
+                </div>`).join('');
+            show('pv_project_section',true); has=true;
+        } else show('pv_project_section',false);
+
+        if (savedCertificates.length) {
+            document.getElementById('pv_certs_list').innerHTML = savedCertificates.map(c=>`
+                <div class="pv-entry"><strong>${c.title}</strong><span class="pv-meta">${c.org||''}${c.year?' · '+c.year:''}</span></div>`).join('');
+            show('pv_certs_section',true); has=true;
+        } else show('pv_certs_section',false);
+
+        if (seminars.completed.length) {
+            document.getElementById('pv_seminars_list').innerHTML = seminars.completed.map(s=>`
+                <div class="pv-entry"><strong>${s.title}</strong><span class="pv-meta">${s.org||''}${s.date?' · '+new Date(s.date).getFullYear():''}</span></div>`).join('');
+            show('pv_seminars_section',true); has=true;
+        } else show('pv_seminars_section',false);
+
+        document.getElementById('pv_empty').style.display = has ? 'none' : 'block';
+    }
+
+    // ════════════════════════════════════
+    // RESUME BUILDER — MULTI-ENTRY
+    // ════════════════════════════════════
+    function initResumeEntries() {
+        if (!resumeEduEntries.length)     addResumeEntry('edu', true);
+        if (!resumeProjectEntries.length) addResumeEntry('project', true);
+        if (!resumeCertEntries.length)    addResumeEntry('cert', true);
+        renderResumeEntries();
+    }
+
+    function addResumeEntry(type, silent=false) {
+        const id = Date.now() + Math.random();
+        if (type==='edu')     resumeEduEntries.push({ id, institution:'', degree:'', branch:'', year:'', cgpa:'' });
+        if (type==='project') resumeProjectEntries.push({ id, title:'', tech:'', desc:'' });
+        if (type==='cert')    resumeCertEntries.push({ id, title:'', org:'', year:'' });
+        if (!silent) { renderResumeEntries(); updatePreview(); }
+    }
+
+    function removeResumeEntry(type, id) {
+        if (type==='edu')     resumeEduEntries     = resumeEduEntries.filter(e=>e.id!==id);
+        if (type==='project') resumeProjectEntries = resumeProjectEntries.filter(e=>e.id!==id);
+        if (type==='cert')    resumeCertEntries    = resumeCertEntries.filter(e=>e.id!==id);
+        renderResumeEntries(); updatePreview();
+    }
+
+    function collectResumeEntries() {
+        document.querySelectorAll('#rv_edu_entries .resume-entry').forEach(el => {
+            const e = resumeEduEntries.find(x=>String(x.id)===el.dataset.id); if(!e) return;
+            e.institution = el.querySelector('[data-f="institution"]')?.value||'';
+            e.degree      = el.querySelector('[data-f="degree"]')?.value||'';
+            e.branch      = el.querySelector('[data-f="branch"]')?.value||'';
+            e.year        = el.querySelector('[data-f="year"]')?.value||'';
+            e.cgpa        = el.querySelector('[data-f="cgpa"]')?.value||'';
+        });
+        document.querySelectorAll('#rv_project_entries .resume-entry').forEach(el => {
+            const e = resumeProjectEntries.find(x=>String(x.id)===el.dataset.id); if(!e) return;
+            e.title = el.querySelector('[data-f="title"]')?.value||'';
+            e.tech  = el.querySelector('[data-f="tech"]')?.value||'';
+            e.desc  = el.querySelector('[data-f="desc"]')?.value||'';
+        });
+        document.querySelectorAll('#rv_cert_entries .resume-entry').forEach(el => {
+            const e = resumeCertEntries.find(x=>String(x.id)===el.dataset.id); if(!e) return;
+            e.title = el.querySelector('[data-f="title"]')?.value||'';
+            e.org   = el.querySelector('[data-f="org"]')?.value||'';
+            e.year  = el.querySelector('[data-f="year"]')?.value||'';
+        });
+    }
+
+    function renderResumeEntries() {
+        const edu = document.getElementById('rv_edu_entries');
+        if (edu) edu.innerHTML = resumeEduEntries.map((e,i)=>`
+            <div class="resume-entry" data-id="${e.id}">
+                <div class="resume-entry-header">
+                    <span class="resume-entry-label">Entry ${i+1}</span>
+                    ${resumeEduEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('edu',${e.id})">✕ Remove</button>`:''}
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" data-f="institution" placeholder="Institution Name" value="${e.institution}" oninput="updatePreview()"></div>
+                    <div class="form-group"><input type="text" data-f="degree" placeholder="Degree / Course" value="${e.degree}" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" data-f="branch" placeholder="Branch / Specialization" value="${e.branch}" oninput="updatePreview()"></div>
+                    <div class="form-group"><input type="text" data-f="year" placeholder="Year (e.g. 2022–2024)" value="${e.year}" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-group"><input type="text" data-f="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa}" oninput="updatePreview()"></div>
+            </div>`).join('');
+
+        const proj = document.getElementById('rv_project_entries');
+        if (proj) proj.innerHTML = resumeProjectEntries.map((p,i)=>`
+            <div class="resume-entry" data-id="${p.id}">
+                <div class="resume-entry-header">
+                    <span class="resume-entry-label">Project ${i+1}</span>
+                    ${resumeProjectEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('project',${p.id})">✕ Remove</button>`:''}
+                </div>
+                <div class="form-group"><input type="text" data-f="title" placeholder="Project Title" value="${p.title}" oninput="updatePreview()"></div>
+                <div class="form-group"><input type="text" data-f="tech" placeholder="Technologies Used" value="${p.tech}" oninput="updatePreview()"></div>
+                <div class="form-group"><textarea class="resume-textarea" data-f="desc" placeholder="Brief description..." rows="2" oninput="updatePreview()">${p.desc}</textarea></div>
+            </div>`).join('');
+
+        const cert = document.getElementById('rv_cert_entries');
+        if (cert) cert.innerHTML = resumeCertEntries.map((c,i)=>`
+            <div class="resume-entry" data-id="${c.id}">
+                <div class="resume-entry-header">
+                    <span class="resume-entry-label">Certificate ${i+1}</span>
+                    ${resumeCertEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('cert',${c.id})">✕ Remove</button>`:''}
+                </div>
+                <div class="form-group"><input type="text" data-f="title" placeholder="Certificate Title" value="${c.title}" oninput="updatePreview()"></div>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" data-f="org" placeholder="Issuing Organization" value="${c.org}" oninput="updatePreview()"></div>
+                    <div class="form-group"><input type="text" data-f="year" placeholder="Year" value="${c.year}" oninput="updatePreview()"></div>
+                </div>
+            </div>`).join('');
+    }
+
+    function generateFromProfile() {
+        document.getElementById('rv_name').value     = profile.name||currentUser?.user_metadata?.full_name||'';
+        document.getElementById('rv_email').value    = profile.email||currentUser?.email||'';
+        document.getElementById('rv_phone').value    = profile.phone||'';
+        document.getElementById('rv_location').value = profile.location||'';
+        document.getElementById('rv_url').value      = profile.url||'';
+        document.getElementById('rv_summary').value  = profile.bio||'';
+        document.getElementById('rv_techskills').value = profile.techskills||'';
+        document.getElementById('rv_tools').value      = profile.tools||'';
+        document.getElementById('rv_softskills').value = profile.softskills||'';
+        if (profile.edu.length)      resumeEduEntries     = profile.edu.map(e=>({ id:Date.now()+Math.random(),...e }));
+        if (profile.projects.length) resumeProjectEntries = profile.projects.map(p=>({ id:Date.now()+Math.random(),...p }));
+        if (savedCertificates.length) resumeCertEntries   = savedCertificates.map(c=>({ id:Date.now()+Math.random(), title:c.title, org:c.org, year:c.year }));
+        renderResumeEntries();
+        updatePreview();
+        showNotif('Resume generated from profile! Fine-tune as needed.');
+    }
+
+    // ════════════════════════════════════
+    // LIVE A4 PREVIEW
+    // ════════════════════════════════════
+    function v(id) { const e=document.getElementById(id); return e?e.value.trim():''; }
+    function sT(id,txt) { const e=document.getElementById(id); if(e) e.textContent=txt; }
+
+    function updatePreview() {
+        collectResumeEntries();
+        sT('prev_name', v('rv_name')||'Your Full Name');
+        const cp=[v('rv_email'),v('rv_phone'),v('rv_location')].filter(Boolean);
+        sT('prev_contact', cp.length?cp.join('  |  '):'email  |  phone  |  location');
+        const urlEl=document.getElementById('prev_url'), urlVal=v('rv_url');
+        if(urlEl){ urlEl.textContent=urlVal; urlEl.style.display=urlVal?'block':'none'; }
+        const sumSec=document.getElementById('prev_summary_section'), sumVal=v('rv_summary');
+        if(sumSec){ sT('prev_summary',sumVal); sumSec.style.display=sumVal?'block':'none'; }
+
+        // Education
+        const eb=document.getElementById('prev_edu_body');
+        if(eb){
+            const valid=resumeEduEntries.filter(e=>e.institution||e.degree);
+            eb.innerHTML = valid.length ? valid.map(e=>`
+                <div style="margin-bottom:6px">
+                    <div class="a4-row-flex"><span class="a4-bold">${e.institution||'—'}</span><span class="a4-right">${e.year||''}</span></div>
+                    <div class="a4-row-flex"><span class="a4-italic">${[e.degree,e.branch].filter(Boolean).join(', ')||''}</span><span class="a4-right a4-muted">${e.cgpa?'CGPA: '+e.cgpa:''}</span></div>
+                </div>`).join('')
+            : '<div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div>';
+        }
+
+        sT('prev_techskills', v('rv_techskills')||'—');
+        sT('prev_tools',      v('rv_tools')||'—');
+        sT('prev_softskills', v('rv_softskills')||'—');
+
+        // Projects
+        const pb=document.getElementById('prev_projects_body');
+        if(pb){
+            const valid=resumeProjectEntries.filter(p=>p.title);
+            pb.innerHTML = valid.length ? valid.map(p=>`
+                <div style="margin-bottom:7px">
+                    <div class="a4-row-flex"><span class="a4-bold">${p.title}</span><span class="a4-right a4-muted a4-italic">${p.tech||''}</span></div>
+                    ${p.desc?`<div class="a4-desc">${p.desc}</div>`:''}
+                </div>`).join('')
+            : '<div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div>';
+        }
+
+        // Certs
+        const cb=document.getElementById('prev_certs_body');
+        if(cb){
+            const valid=resumeCertEntries.filter(c=>c.title);
+            cb.innerHTML = valid.length ? valid.map(c=>`
+                <div style="margin-bottom:5px">
+                    <div class="a4-row-flex"><span class="a4-bold">${c.title}</span><span class="a4-right a4-muted">${c.year||''}</span></div>
+                    ${c.org?`<div class="a4-muted a4-italic">${c.org}</div>`:''}
+                </div>`).join('')
+            : '<div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div>';
+        }
+
+        // Seminars (auto)
+        const sec=document.getElementById('prev_seminars_section'), sbody=document.getElementById('prev_seminars_body');
+        if(sec&&sbody){
+            if(seminars.completed.length){
+                sec.style.display='block';
+                sbody.innerHTML = seminars.completed.map(s=>`
+                    <div style="margin-bottom:4px" class="a4-row-flex">
+                        <span class="a4-bold">${s.title}</span>
+                        <span class="a4-right a4-muted">${s.org?s.org+(s.date?', ':''):''}${s.date?new Date(s.date).getFullYear():''}</span>
+                    </div>`).join('');
+            } else { sec.style.display='none'; }
+        }
+
+        // Sync seminars display in accordion
+        const sd=document.getElementById('rv_seminars_display');
+        if(sd){
+            sd.innerHTML = seminars.completed.length
+                ? seminars.completed.map(s=>`<div class="seminar-readonly-item"><span class="pro-badge">🎓</span><span><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</span></div>`).join('')
+                : '<p class="empty-state-text" style="padding:0.5rem 0;font-size:0.85rem">Complete seminars in the Seminars tab to auto-populate here.</p>';
+        }
+    }
+
+    // ════════════════════════════════════
+    // CERTIFICATES
+    // ════════════════════════════════════
+    function handleCertUpload(e) {
+        const file=e.target.files[0]; if(!file) return;
+        document.getElementById('certTitle').value = file.name.replace(/\.[^.]+$/,'');
+        document.getElementById('certName').value  = profile.name||currentUser?.user_metadata?.full_name||'';
+        document.getElementById('certOrg').value   = '';
+        document.getElementById('certYear').value  = new Date().getFullYear();
+        document.getElementById('certPreviewCard').classList.add('show');
+    }
+    function closeCertPreview() {
+        document.getElementById('certPreviewCard').classList.remove('show');
+        document.getElementById('certFileInput').value='';
+    }
+    function confirmCertificate() {
+        const cert = { id:Date.now(), title:document.getElementById('certTitle').value||'Untitled', name:document.getElementById('certName').value, org:document.getElementById('certOrg').value, year:document.getElementById('certYear').value };
+        savedCertificates.push(cert);
+        renderCertificates(); closeCertPreview(); updateDashboardCards();
+        showNotif('Certificate saved and added to your profile!');
+    }
+    function renderCertificates() {
+        const c=document.getElementById('savedCertsList');
+        c.innerHTML = savedCertificates.length
+            ? savedCertificates.map(c=>`<div class="saved-cert-item"><div class="saved-cert-info"><div class="saved-cert-title">${c.title}</div><div class="saved-cert-meta">${c.org?c.org+' · ':''}${c.year}</div></div><button class="cert-delete-btn" onclick="deleteCertificate(${c.id})">✕</button></div>`).join('')
+            : '<p class="empty-state-text">No certificates saved yet. Upload one above.</p>';
+    }
+    function deleteCertificate(id) { savedCertificates=savedCertificates.filter(c=>c.id!==id); renderCertificates(); updateDashboardCards(); }
+
+    // ════════════════════════════════════
+    // SEMINARS
+    // ════════════════════════════════════
+    function showAddSeminarForm() { document.getElementById('addSeminarForm').classList.add('show'); document.getElementById('seminarTitle').focus(); }
+    function hideAddSeminarForm() {
+        document.getElementById('addSeminarForm').classList.remove('show');
+        ['seminarTitle','seminarOrg','seminarNotes'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('seminarDate').value='';
+    }
+    function saveSeminar() {
+        const title=document.getElementById('seminarTitle').value.trim();
+        if(!title){ showNotif('Please enter a seminar title.','error'); return; }
+        const dv=document.getElementById('seminarDate').value;
+        const s={ id:Date.now(), title, org:document.getElementById('seminarOrg').value, date:dv, notes:document.getElementById('seminarNotes').value };
+        const today=new Date(); today.setHours(0,0,0,0);
+        const sd=dv?new Date(dv):null;
+        const dest=(sd&&sd<=today)?'completed':'queue';
+        seminars[dest].push(s);
+        renderSeminars('completed'); renderSeminars('queue');
+        hideAddSeminarForm(); updateDashboardCards();
+        if(dest==='completed'){
+            updatePreview();
+            showNotif('Seminar completed — added to resume automatically!');
+            switchSubtab('seminars','completed',document.querySelector('#tab-seminars .subtab-btn'));
+        } else { showNotif('Seminar added to queue.'); }
+    }
+    function markSeminarComplete(id) {
+        const idx=seminars.queue.findIndex(s=>s.id===id); if(idx===-1) return;
+        const s=seminars.queue.splice(idx,1)[0];
+        s.date=s.date||new Date().toISOString().split('T')[0];
+        seminars.completed.push(s);
+        renderSeminars('completed'); renderSeminars('queue');
+        updatePreview(); updateDashboardCards();
+        showNotif(`"${s.title}" completed — added to resume!`);
+    }
+    function deleteSeminar(type,id) {
+        seminars[type]=seminars[type].filter(s=>s.id!==id);
+        renderSeminars(type);
+        if(type==='completed') updatePreview();
+        updateDashboardCards();
+    }
+    function renderSeminars(type) {
+        const el=document.getElementById(type==='completed'?'completedSeminarsList':'queueSeminarsList');
+        const list=seminars[type];
+        if(!list.length){ el.innerHTML=type==='completed'?'<p class="empty-state-text">No completed seminars yet. Add upcoming ones in the On Queue tab.</p>':'<p class="empty-state-text">No seminars on queue.</p>'; return; }
+        el.innerHTML=list.map(s=>{
+            const dd=s.date?new Date(s.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
+            return type==='queue'
+                ? `<div class="seminar-card"><div class="seminar-card-body"><div class="seminar-card-title">${s.title}</div><div class="seminar-card-meta">${s.org?s.org+' &nbsp;·&nbsp; ':''}${dd?'📅 '+dd:'No date set'}</div>${s.notes?`<div class="seminar-card-notes">${s.notes}</div>`:''}</div><div class="seminar-card-actions"><button class="btn btn-dark seminar-complete-btn" onclick="markSeminarComplete(${s.id})">✓ Mark Complete</button><button class="btn seminar-delete-btn" onclick="deleteSeminar('queue',${s.id})">✕</button></div></div>`
+                : `<div class="seminar-card seminar-card-done"><div class="seminar-card-body"><div class="seminar-card-title">${s.title}</div><div class="seminar-card-meta">${s.org?s.org+' &nbsp;·&nbsp; ':''}${dd}</div>${s.notes?`<div class="seminar-card-notes">${s.notes}</div>`:''}</div><div class="seminar-card-actions"><button class="btn btn-dark" style="font-size:0.75rem;padding:0.35rem 0.75rem">✓ In Resume</button><button class="btn seminar-delete-btn" onclick="deleteSeminar('completed',${s.id})">✕</button></div></div>`;
+        }).join('');
+    }
+    function checkSeminarDates() {
+        const today=new Date(); today.setHours(0,0,0,0);
+        const move=seminars.queue.filter(s=>s.date&&new Date(s.date)<=today);
+        if(!move.length) return;
+        move.forEach(s=>{ seminars.queue=seminars.queue.filter(q=>q.id!==s.id); seminars.completed.push(s); });
+        renderSeminars('completed'); renderSeminars('queue');
+        updatePreview(); updateDashboardCards();
+        showNotif(`${move.length} seminar(s) auto-moved to Completed and added to resume.`);
+    }
+
+    // ════════════════════════════════════
+    // FILE MANAGER
+    // ════════════════════════════════════
+    function handleFMUpload(e) {
+        const file=e.target.files[0]; if(!file) return;
+        managedFiles.push({ id:Date.now(), name:file.name, type:file.type||'Unknown', date:new Date().toLocaleDateString() });
+        renderFileTable(); e.target.value='';
+    }
+    function renderFileTable() {
+        const tbody=document.getElementById('fileTableBody');
+        tbody.innerHTML=managedFiles.length
+            ? managedFiles.map(f=>`<tr><td class="file-name-cell"><span class="file-icon">📎</span>${f.name}</td><td><span class="file-type-badge">${f.type.split('/').pop().toUpperCase()}</span></td><td>${f.date}</td><td><div class="file-actions"><button class="file-action-btn file-action-delete" onclick="deleteFile(${f.id})">Delete</button></div></td></tr>`).join('')
+            : '<tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>';
+    }
+    function deleteFile(id) { managedFiles=managedFiles.filter(f=>f.id!==id); renderFileTable(); }
+
+    // ════════════════════════════════════
+    // DASHBOARD CARDS
+    // ════════════════════════════════════
+    function updateDashboardCards() {
+        const dc=document.getElementById('dc_certs'); if(dc) dc.textContent=savedCertificates.length;
+        const ds=document.getElementById('dc_seminars'); if(ds) ds.textContent=seminars.completed.length+seminars.queue.length;
+    }
+
+    </script>
+</body>
+</html>

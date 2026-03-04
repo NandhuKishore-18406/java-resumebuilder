@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificates — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">Certificates</span>
+            </div>
+
+            <div class="tab-content active" id="tab-certificates">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">Certificates</h2>
+                    <p class="tab-subtext">Upload certificates — saved data appears in your profile and resume automatically.</p>
+
+                    <div class="upload-zone" onclick="document.getElementById('certFileInput').click()">
+                        <div class="upload-icon">⬆</div>
+                        <p class="upload-label">Click to upload or drag &amp; drop</p>
+                        <p class="upload-hint">Supports PDF and image files (PNG, JPG)</p>
+                        <input type="file" id="certFileInput" accept=".pdf,.png,.jpg,.jpeg" onchange="handleCertUpload(event)">
+                    </div>
+
+                    <div class="cert-preview-card" id="certPreviewCard">
+                        <div class="cert-preview-header">
+                            <span class="cert-preview-badge">✓ Extracted Data</span>
+                            <button class="cert-preview-close" onclick="closeCertPreview()">✕</button>
+                        </div>
+                        <div class="cert-fields">
+                            <div class="cert-field-group">
+                                <label class="cert-field-label">Certificate Title</label>
+                                <input type="text" class="cert-field-input" id="certTitle" placeholder="Auto-extracted title">
+                            </div>
+                            <div class="cert-field-group">
+                                <label class="cert-field-label">Recipient Name</label>
+                                <input type="text" class="cert-field-input" id="certName" placeholder="Auto-extracted name">
+                            </div>
+                            <div class="form-row">
+                                <div class="cert-field-group" style="flex:1">
+                                    <label class="cert-field-label">Issuing Organization</label>
+                                    <input type="text" class="cert-field-input" id="certOrg" placeholder="Organization">
+                                </div>
+                                <div class="cert-field-group" style="flex:1">
+                                    <label class="cert-field-label">Year</label>
+                                    <input type="text" class="cert-field-input" id="certYear" placeholder="Year">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="cert-preview-actions">
+                            <button class="btn btn-dark" onclick="confirmCertificate()">✓ Confirm &amp; Save</button>
+                            <button class="btn" onclick="closeCertPreview()">Discard</button>
+                        </div>
+                    </div>
+
+                    <div class="saved-certs" id="savedCertsList">
+                        <p class="empty-state-text">No certificates saved yet. Upload one above.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let currentUser=null;
+    let profile={name:''};
+    let savedCertificates=[];
+
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='certificates'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ── TEST SESSION HELPERS ──
+    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
+    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
+
+    (async()=>{
+        // Check test session first
+        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
+        // Fall back to Supabase
+        const{data:{session}}=await supabaseClient.auth.getSession();
+        if(!session){window.location.href='index.html';return;}
+        currentUser=session.user;
+        init();
+    })();
+    supabaseClient.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
+    });
+
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        const st=getState();
+        if(st.profile) profile={...profile,...st.profile};
+        if(st.savedCertificates) savedCertificates=st.savedCertificates;
+        renderCertificates();
+    }
+
+    function handleCertUpload(e){
+        const file=e.target.files[0];if(!file)return;
+        document.getElementById('certTitle').value=file.name.replace(/\.[^.]+$/,'');
+        document.getElementById('certName').value=profile.name||currentUser?.user_metadata?.full_name||'';
+        document.getElementById('certOrg').value='';
+        document.getElementById('certYear').value=new Date().getFullYear();
+        document.getElementById('certPreviewCard').classList.add('show');
+    }
+    function closeCertPreview(){
+        document.getElementById('certPreviewCard').classList.remove('show');
+        document.getElementById('certFileInput').value='';
+    }
+    function confirmCertificate(){
+        const cert={id:Date.now(),title:document.getElementById('certTitle').value||'Untitled',name:document.getElementById('certName').value,org:document.getElementById('certOrg').value,year:document.getElementById('certYear').value};
+        savedCertificates.push(cert);
+        saveState({savedCertificates});
+        renderCertificates();closeCertPreview();
+        showNotif('Certificate saved and added to your profile!');
+    }
+    function renderCertificates(){
+        const c=document.getElementById('savedCertsList');
+        c.innerHTML=savedCertificates.length?savedCertificates.map(c=>`<div class="saved-cert-item"><div class="saved-cert-info"><div class="saved-cert-title">${c.title}</div><div class="saved-cert-meta">${c.org?c.org+' · ':''}${c.year}</div></div><button class="cert-delete-btn" onclick="deleteCertificate(${c.id})">✕</button></div>`).join(''):'<p class="empty-state-text">No certificates saved yet. Upload one above.</p>';
+    }
+    function deleteCertificate(id){savedCertificates=savedCertificates.filter(c=>c.id!==id);saveState({savedCertificates});renderCertificates();}
+
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        if(isTestSession()){
+            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
+            window.location.href='index.html'; return;
+        }
+        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+    }
+    </script>
+</body>
+</html>

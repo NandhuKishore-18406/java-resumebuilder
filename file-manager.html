@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">File Manager</span>
+            </div>
+
+            <div class="tab-content active" id="tab-file-manager">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">File Manager</h2>
+                    <p class="tab-subtext">All your uploaded files in one place.</p>
+                    <div class="file-manager-toolbar">
+                        <button class="btn btn-dark" onclick="document.getElementById('fmFileInput').click()">⬆ Upload File</button>
+                        <input type="file" id="fmFileInput" onchange="handleFMUpload(event)">
+                    </div>
+                    <div class="file-table-wrapper">
+                        <table class="file-table">
+                            <thead><tr><th>File Name</th><th>Type</th><th>Date Added</th><th>Actions</th></tr></thead>
+                            <tbody id="fileTableBody">
+                                <tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let currentUser=null;
+    let managedFiles=[];
+
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='file-manager'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ── TEST SESSION HELPERS ──
+    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
+    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
+
+    (async()=>{
+        // Check test session first
+        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
+        // Fall back to Supabase
+        const{data:{session}}=await supabaseClient.auth.getSession();
+        if(!session){window.location.href='index.html';return;}
+        currentUser=session.user;
+        init();
+    })();
+    supabaseClient.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
+    });
+
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        const st=getState();
+        if(st.managedFiles) managedFiles=st.managedFiles;
+        renderFileTable();
+    }
+
+    function handleFMUpload(e){
+        const file=e.target.files[0];if(!file)return;
+        managedFiles.push({id:Date.now(),name:file.name,type:file.type||'Unknown',date:new Date().toLocaleDateString()});
+        saveState({managedFiles});
+        renderFileTable();e.target.value='';
+    }
+    function renderFileTable(){
+        const tbody=document.getElementById('fileTableBody');
+        tbody.innerHTML=managedFiles.length
+            ?managedFiles.map(f=>`<tr><td class="file-name-cell"><span class="file-icon">📎</span>${f.name}</td><td><span class="file-type-badge">${f.type.split('/').pop().toUpperCase()}</span></td><td>${f.date}</td><td><div class="file-actions"><button class="file-action-btn file-action-delete" onclick="deleteFile(${f.id})">Delete</button></div></td></tr>`).join('')
+            :'<tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>';
+    }
+    function deleteFile(id){managedFiles=managedFiles.filter(f=>f.id!==id);saveState({managedFiles});renderFileTable();}
+
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        if(isTestSession()){
+            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
+            window.location.href='index.html'; return;
+        }
+        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+    }
+    </script>
+</body>
+</html>

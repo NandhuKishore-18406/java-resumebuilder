@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text">
+                <h1>Resume builder</h1>
+                <p>auto update and generation</p>
+            </div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <!-- LOGGED IN VIEW -->
+    <div class="logged-in-section active" id="loggedInSection">
+
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()">
+                    <span></span><span></span><span></span>
+                </button>
+                <span class="app-topbar-title">Dashboard</span>
+            </div>
+
+            <!-- ─── DASHBOARD ─── -->
+            <div class="tab-content active" id="tab-dashboard">
+                <div class="tab-inner">
+
+                    <!-- Greeting Note — clicks to Profile -->
+                    <a href="profile.html" class="greeting-note" id="greetingNote">
+                        <span class="greeting-wave">👋</span>
+                        <div class="greeting-title" id="greetingTitle">Welcome back!</div>
+                        <div class="greeting-subtitle" id="greetingSubtitle">Your academic resume workspace is ready.</div>
+                        <span class="greeting-cta">✏ View &amp; edit your profile →</span>
+                    </a>
+
+                    <!-- Site Flow Strip -->
+                    <div class="info-section">
+                        <div class="info-section-title">🗺 How this app works</div>
+                        <div class="flow-strip">
+                            <div class="flow-step"><span>1️⃣</span> Fill Profile</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-step"><span>📄</span> Build Resume</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-step"><span>🏅</span> Add Certificates</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-step"><span>🎓</span> Log Seminars</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-step"><span>⬇</span> Export PDF</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Guide Cards -->
+                    <div class="info-section">
+                        <div class="info-section-title">📌 What to do in each section</div>
+                        <div class="info-cards-grid">
+
+                            <a href="profile.html" class="info-card">
+                                <div class="info-card-header">
+                                    <div class="info-card-icon">👤</div>
+                                    <div class="info-card-name">Profile</div>
+                                </div>
+                                <div class="info-card-desc">Your central academic identity. Fill this first — all other sections pull data from here.</div>
+                                <ul class="info-card-steps">
+                                    <li>Enter your name, phone, location &amp; LinkedIn URL</li>
+                                    <li>Write a short bio / professional summary</li>
+                                    <li>Add education entries (institution, degree, CGPA)</li>
+                                    <li>List your technical skills, tools &amp; soft skills</li>
+                                    <li>Add projects with description &amp; tech stack</li>
+                                    <li>Click <strong>Save Profile</strong> when done</li>
+                                </ul>
+                            </a>
+
+                            <a href="resume-builder.html" class="info-card">
+                                <div class="info-card-header">
+                                    <div class="info-card-icon">📄</div>
+                                    <div class="info-card-name">Resume Builder</div>
+                                </div>
+                                <div class="info-card-desc">Build a clean A4 resume with a live preview. Generate from profile or edit manually.</div>
+                                <ul class="info-card-steps">
+                                    <li>Click <strong>⚡ Generate from Profile</strong> to auto-fill</li>
+                                    <li>Fine-tune each section using the accordions</li>
+                                    <li>Seminars auto-populate once you complete them</li>
+                                    <li>Preview updates live on the right panel</li>
+                                    <li>Click <strong>Export Resume as PDF</strong> to download</li>
+                                </ul>
+                            </a>
+
+                            <a href="certificates.html" class="info-card">
+                                <div class="info-card-header">
+                                    <div class="info-card-icon">🏅</div>
+                                    <div class="info-card-name">Certificates</div>
+                                </div>
+                                <div class="info-card-desc">Upload certificate images or PDFs — data is auto-extracted and saved to your profile &amp; resume.</div>
+                                <ul class="info-card-steps">
+                                    <li>Click the upload zone or drag &amp; drop a file</li>
+                                    <li>Supported formats: PDF, PNG, JPG</li>
+                                    <li>Review the auto-extracted title, org &amp; year</li>
+                                    <li>Edit any fields if extraction was inaccurate</li>
+                                    <li>Click <strong>Confirm &amp; Save</strong> to add to your profile</li>
+                                    <li>Saved certificates appear in your resume automatically</li>
+                                </ul>
+                            </a>
+
+                            <a href="seminars.html" class="info-card">
+                                <div class="info-card-header">
+                                    <div class="info-card-icon">🎓</div>
+                                    <div class="info-card-name">Seminars</div>
+                                </div>
+                                <div class="info-card-desc">Track seminars &amp; workshops. Completed ones auto-populate your resume — no manual entry needed.</div>
+                                <ul class="info-card-steps">
+                                    <li>Go to the <strong>On Queue</strong> tab and click <strong>+ Add Seminar</strong></li>
+                                    <li>Enter title, organizer, date &amp; optional notes</li>
+                                    <li>Past dates auto-move to <strong>Completed</strong> and add to resume</li>
+                                    <li>Upcoming seminars stay in queue until their date</li>
+                                    <li>Mark any queued seminar complete manually anytime</li>
+                                </ul>
+                            </a>
+
+                            <a href="file-manager.html" class="info-card">
+                                <div class="info-card-header">
+                                    <div class="info-card-icon">🗂</div>
+                                    <div class="info-card-name">File Manager</div>
+                                </div>
+                                <div class="info-card-desc">A central place to keep all your documents — certificates, transcripts, project files, etc.</div>
+                                <ul class="info-card-steps">
+                                    <li>Click <strong>⬆ Upload File</strong> to add any document</li>
+                                    <li>Files are listed with name, type &amp; upload date</li>
+                                    <li>Delete any file using the Delete button</li>
+                                    <li>Use this as a personal document vault for your records</li>
+                                </ul>
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tips -->
+                    <div class="info-section">
+                        <div class="info-section-title">🧭 Navigation tips</div>
+                        <div class="flow-strip" style="flex-direction:column;align-items:flex-start;gap:0.6rem;">
+                            <div style="font-size:0.9rem;color:#555;display:flex;gap:0.5rem;align-items:flex-start">
+                                <span style="color:var(--accent-color);font-weight:700;">☰</span>
+                                Use the <strong>hamburger menu</strong> (top-left) on any page to open the sidebar and navigate between sections.
+                            </div>
+                            <div style="font-size:0.9rem;color:#555;display:flex;gap:0.5rem;align-items:flex-start">
+                                <span style="color:var(--accent-color);font-weight:700;">💾</span>
+                                Your data is saved in your browser session. Always <strong>Save Profile</strong> before leaving the Profile page.
+                            </div>
+                            <div style="font-size:0.9rem;color:#555;display:flex;gap:0.5rem;align-items:flex-start">
+                                <span style="color:var(--accent-color);font-weight:700;">⚡</span>
+                                In the Resume Builder, use <strong>Generate from Profile</strong> to auto-populate everything with one click.
+                            </div>
+                            <div style="font-size:0.9rem;color:#555;display:flex;gap:0.5rem;align-items:flex-start">
+                                <span style="color:var(--accent-color);font-weight:700;">🔄</span>
+                                Seminars and Certificates <strong>sync automatically</strong> to your resume — no manual copy-paste needed.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div><!-- /app-main -->
+    </div><!-- /logged-in-section -->
+
+    <!-- LOGOUT TOAST -->
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    const SUPABASE_URL      = 'https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient    = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentUser = null;
+
+    // ── SIDEBAR ──
+    function renderSidebar() {
+        const pages = [
+            { id:'dashboard',      icon:'⊞', label:'Dashboard',     href:'dashboard.html' },
+            { id:'profile',        icon:'👤', label:'Profile',        href:'profile.html' },
+            { id:'resume-builder', icon:'📄', label:'Resume Builder', href:'resume-builder.html' },
+            { id:'certificates',   icon:'🏅', label:'Certificates',   href:'certificates.html' },
+            { id:'seminars',       icon:'🎓', label:'Seminars',        href:'seminars.html' },
+            { id:'file-manager',   icon:'🗂', label:'File Manager',   href:'file-manager.html' },
+        ];
+        document.getElementById('appSidebar').innerHTML = `
+            <div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div>
+            <nav class="sidebar-nav">
+                ${pages.map(p=>`<a class="sidebar-item${p.id==='dashboard'?' active':''}" href="${p.href}" style="text-decoration:none">
+                    <span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-item sidebar-logout" onclick="showLogoutToast()">
+                    <span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span>
+                </button>
+            </div>`;
+    }
+    function openSidebar()  { document.getElementById('appSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); }
+    function closeSidebar() { document.getElementById('appSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+    // ── TEST SESSION HELPERS ──
+    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
+    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
+
+    // ── AUTH ──
+    (async () => {
+        if (isTestSession()) { currentUser = TEST_USER_MOCK; init(); return; }
+        const { data:{ session } } = await supabaseClient.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return; }
+        currentUser = session.user;
+        init();
+    })();
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' && !isTestSession()) window.location.href = 'index.html';
+    });
+
+    function init() {
+        renderSidebar();
+        // Update header
+        document.getElementById('headerActions').innerHTML =
+            `<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        // Personalise greeting
+        const state = getState();
+        const profileName = state.profile?.name || currentUser?.user_metadata?.full_name || '';
+        const firstName   = profileName.split(' ')[0] || '';
+        const hour = new Date().getHours();
+        const tod = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+        const greetTitle = firstName ? `Good ${tod}, ${firstName}!` : `Good ${tod}!`;
+        document.getElementById('greetingTitle').textContent   = greetTitle;
+        document.getElementById('greetingSubtitle').textContent = 'Your academic resume workspace is ready. Click here to view or edit your profile.';
+    }
+
+    // ── STATE ──
+    function getState() {
+        try { const r=sessionStorage.getItem('rb_state'); return r?JSON.parse(r):{profile:{}}; } catch(e){return {profile:{}};}
+    }
+
+    // ── TOAST ──
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        if(isTestSession()){
+            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
+            window.location.href='index.html'; return;
+        }
+        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+    }
+    </script>
+</body>
+</html>

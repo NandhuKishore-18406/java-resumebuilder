@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seminars — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">Seminars</span>
+            </div>
+
+            <div class="tab-content active" id="tab-seminars">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">Seminars</h2>
+                    <p class="tab-subtext">Add upcoming seminars. When completed they auto-populate your resume and profile.</p>
+
+                    <div class="subtab-bar">
+                        <button class="subtab-btn active" id="btn-completed" onclick="switchSubtab('completed',this)">Completed</button>
+                        <button class="subtab-btn" id="btn-queue" onclick="switchSubtab('queue',this)">On Queue</button>
+                    </div>
+
+                    <div class="subtab-content active" id="subtab-completed">
+                        <div id="completedSeminarsList">
+                            <p class="empty-state-text">No completed seminars yet. Add upcoming ones in the On Queue tab.</p>
+                        </div>
+                    </div>
+
+                    <div class="subtab-content" id="subtab-queue">
+                        <button class="btn btn-dark add-seminar-btn" onclick="showAddSeminarForm()">+ Add Seminar</button>
+                        <div class="add-seminar-form" id="addSeminarForm">
+                            <h3 class="form-section-title">New Seminar</h3>
+                            <div class="form-group"><input type="text" id="seminarTitle" placeholder="Seminar Title"></div>
+                            <div class="form-row">
+                                <div class="form-group"><input type="text" id="seminarOrg" placeholder="Organizer / Institution"></div>
+                                <div class="form-group">
+                                    <input type="date" id="seminarDate">
+                                    <small class="field-hint">Past date = auto-moved to Completed + added to Resume</small>
+                                </div>
+                            </div>
+                            <div class="form-group"><textarea class="resume-textarea" id="seminarNotes" placeholder="Notes or description..." rows="2"></textarea></div>
+                            <div class="form-actions">
+                                <button class="btn btn-dark" onclick="saveSeminar()">Save</button>
+                                <button class="btn btn-cancel" onclick="hideAddSeminarForm()">Cancel</button>
+                            </div>
+                        </div>
+                        <div id="queueSeminarsList">
+                            <p class="empty-state-text">No seminars on queue.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let currentUser=null;
+    let seminars={completed:[],queue:[]};
+
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='seminars'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ── TEST SESSION HELPERS ──
+    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
+    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
+
+    (async()=>{
+        // Check test session first
+        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
+        // Fall back to Supabase
+        const{data:{session}}=await supabaseClient.auth.getSession();
+        if(!session){window.location.href='index.html';return;}
+        currentUser=session.user;
+        init();
+    })();
+    supabaseClient.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
+    });
+
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        const st=getState();
+        if(st.seminars) seminars=st.seminars;
+        checkSeminarDates();
+        renderSeminars('completed');
+        renderSeminars('queue');
+    }
+
+    function switchSubtab(id,btn){
+        document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.subtab-content').forEach(c=>c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('subtab-'+id).classList.add('active');
+    }
+
+    function showAddSeminarForm(){document.getElementById('addSeminarForm').classList.add('show');document.getElementById('seminarTitle').focus();}
+    function hideAddSeminarForm(){
+        document.getElementById('addSeminarForm').classList.remove('show');
+        ['seminarTitle','seminarOrg','seminarNotes'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('seminarDate').value='';
+    }
+    function saveSeminar(){
+        const title=document.getElementById('seminarTitle').value.trim();
+        if(!title){showNotif('Please enter a seminar title.','error');return;}
+        const dv=document.getElementById('seminarDate').value;
+        const s={id:Date.now(),title,org:document.getElementById('seminarOrg').value,date:dv,notes:document.getElementById('seminarNotes').value};
+        const today=new Date();today.setHours(0,0,0,0);
+        const sd=dv?new Date(dv):null;
+        const dest=(sd&&sd<=today)?'completed':'queue';
+        seminars[dest].push(s);
+        saveState({seminars});
+        renderSeminars('completed');renderSeminars('queue');
+        hideAddSeminarForm();
+        if(dest==='completed'){
+            showNotif('Seminar completed — added to resume automatically!');
+            switchSubtab('completed',document.getElementById('btn-completed'));
+        }else{showNotif('Seminar added to queue.');}
+    }
+    function markSeminarComplete(id){
+        const idx=seminars.queue.findIndex(s=>s.id===id);if(idx===-1)return;
+        const s=seminars.queue.splice(idx,1)[0];
+        s.date=s.date||new Date().toISOString().split('T')[0];
+        seminars.completed.push(s);
+        saveState({seminars});
+        renderSeminars('completed');renderSeminars('queue');
+        showNotif(`"${s.title}" completed — added to resume!`);
+    }
+    function deleteSeminar(type,id){
+        seminars[type]=seminars[type].filter(s=>s.id!==id);
+        saveState({seminars});
+        renderSeminars(type);
+    }
+    function renderSeminars(type){
+        const el=document.getElementById(type==='completed'?'completedSeminarsList':'queueSeminarsList');
+        const list=seminars[type];
+        if(!list.length){el.innerHTML=type==='completed'?'<p class="empty-state-text">No completed seminars yet. Add upcoming ones in the On Queue tab.</p>':'<p class="empty-state-text">No seminars on queue.</p>';return;}
+        el.innerHTML=list.map(s=>{
+            const dd=s.date?new Date(s.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
+            return type==='queue'
+                ?`<div class="seminar-card"><div class="seminar-card-body"><div class="seminar-card-title">${s.title}</div><div class="seminar-card-meta">${s.org?s.org+' &nbsp;·&nbsp; ':''}${dd?'📅 '+dd:'No date set'}</div>${s.notes?`<div class="seminar-card-notes">${s.notes}</div>`:''}</div><div class="seminar-card-actions"><button class="btn btn-dark seminar-complete-btn" onclick="markSeminarComplete(${s.id})">✓ Mark Complete</button><button class="btn seminar-delete-btn" onclick="deleteSeminar('queue',${s.id})">✕</button></div></div>`
+                :`<div class="seminar-card seminar-card-done"><div class="seminar-card-body"><div class="seminar-card-title">${s.title}</div><div class="seminar-card-meta">${s.org?s.org+' &nbsp;·&nbsp; ':''}${dd}</div>${s.notes?`<div class="seminar-card-notes">${s.notes}</div>`:''}</div><div class="seminar-card-actions"><button class="btn btn-dark" style="font-size:0.75rem;padding:0.35rem 0.75rem">✓ In Resume</button><button class="btn seminar-delete-btn" onclick="deleteSeminar('completed',${s.id})">✕</button></div></div>`;
+        }).join('');
+    }
+    function checkSeminarDates(){
+        const today=new Date();today.setHours(0,0,0,0);
+        const move=seminars.queue.filter(s=>s.date&&new Date(s.date)<=today);
+        if(!move.length)return;
+        move.forEach(s=>{seminars.queue=seminars.queue.filter(q=>q.id!==s.id);seminars.completed.push(s);});
+        saveState({seminars});
+        showNotif(`${move.length} seminar(s) auto-moved to Completed and added to resume.`);
+    }
+
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        if(isTestSession()){
+            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
+            window.location.href='index.html'; return;
+        }
+        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+    }
+    </script>
+</body>
+</html>

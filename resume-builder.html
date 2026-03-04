@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active" id="loggedInSection">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">Resume Builder</span>
+            </div>
+
+            <div class="tab-content active" id="tab-resume-builder">
+                <div class="tab-inner resume-builder-layout">
+
+                    <div class="resume-form-panel">
+                        <div class="resume-form-topbar">
+                            <div>
+                                <h2 class="tab-heading">Resume Builder</h2>
+                                <p class="tab-subtext">Edit directly or generate from your profile.</p>
+                            </div>
+                            <button class="btn btn-dark generate-btn" onclick="generateFromProfile()">⚡ Generate from Profile</button>
+                        </div>
+
+                        <!-- Personal Info -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Personal Info</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body open">
+                                <div class="form-row">
+                                    <div class="form-group"><input type="text" id="rv_name" placeholder="Full Name" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="email" id="rv_email" placeholder="Email Address" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><input type="tel" id="rv_phone" placeholder="Phone Number" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="text" id="rv_location" placeholder="Location" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-group"><input type="url" id="rv_url" placeholder="LinkedIn / Portfolio URL" oninput="updatePreview()"></div>
+                                <div class="form-group"><textarea class="resume-textarea" id="rv_summary" placeholder="Professional Summary..." rows="2" oninput="updatePreview()"></textarea></div>
+                            </div>
+                        </div>
+
+                        <!-- Education -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Education</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div id="rv_edu_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('edu')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Skills</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div class="form-group"><input type="text" id="rv_techskills" placeholder="Technical Skills (comma separated)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_tools" placeholder="Tools &amp; Technologies" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_softskills" placeholder="Soft Skills" oninput="updatePreview()"></div>
+                            </div>
+                        </div>
+
+                        <!-- Projects -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Projects</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div id="rv_project_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('project')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Certificates -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Certificates</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div id="rv_cert_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('cert')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Seminars (auto-synced) -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)">
+                                <span>Seminars</span><span class="accordion-badge">auto-synced</span><span class="accordion-arrow">▾</span>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="rv_seminars_display" class="seminars-readonly-list">
+                                    <p class="empty-state-text" style="padding:0.5rem 0;font-size:0.85rem">Complete seminars in the <a href="seminars.html">Seminars tab</a> to auto-populate here.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="resume-export-bar">
+                            <button class="btn btn-dark export-btn" onclick="exportPDF()">⬇ Export Resume as PDF</button>
+                        </div>
+                    </div>
+
+                    <!-- Live A4 Preview -->
+                    <div class="resume-preview-panel">
+                        <div class="preview-label">Live Preview</div>
+                        <div class="a4-paper" id="a4Preview">
+                            <div class="a4-header">
+                                <div class="a4-name" id="prev_name">Your Full Name</div>
+                                <div class="a4-contact" id="prev_contact">email | phone | location</div>
+                                <div class="a4-url" id="prev_url" style="display:none"></div>
+                            </div>
+                            <div class="a4-section" id="prev_summary_section" style="display:none">
+                                <div class="a4-section-title">Summary</div>
+                                <div class="a4-section-body a4-desc" id="prev_summary"></div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Education</div>
+                                <div class="a4-section-body" id="prev_edu_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div></div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Skills</div>
+                                <div class="a4-section-body">
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Technical:</span><span id="prev_techskills" class="a4-muted">—</span></div>
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Tools:</span><span id="prev_tools" class="a4-muted">—</span></div>
+                                    <div class="a4-skill-row"><span class="a4-skill-label">Soft:</span><span id="prev_softskills" class="a4-muted">—</span></div>
+                                </div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Projects</div>
+                                <div class="a4-section-body" id="prev_projects_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div></div>
+                            </div>
+                            <div class="a4-section">
+                                <div class="a4-section-title">Certificates</div>
+                                <div class="a4-section-body" id="prev_certs_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div></div>
+                            </div>
+                            <div class="a4-section" id="prev_seminars_section" style="display:none">
+                                <div class="a4-section-title">Seminars &amp; Workshops</div>
+                                <div class="a4-section-body" id="prev_seminars_body"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
+    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let currentUser=null;
+    let profile={name:'',email:'',phone:'',location:'',url:'',bio:'',techskills:'',tools:'',softskills:'',edu:[],projects:[]};
+    let savedCertificates=[];
+    let seminars={completed:[],queue:[]};
+    let resumeEduEntries=[];
+    let resumeProjectEntries=[];
+    let resumeCertEntries=[];
+
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='resume-builder'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ── TEST SESSION HELPERS ──
+    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
+    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
+
+    (async()=>{
+        // Check test session first
+        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
+        // Fall back to Supabase
+        const{data:{session}}=await supabaseClient.auth.getSession();
+        if(!session){window.location.href='index.html';return;}
+        currentUser=session.user;
+        init();
+    })();
+    supabaseClient.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
+    });
+
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        const st=getState();
+        if(st.profile) profile={...profile,...st.profile};
+        if(st.savedCertificates) savedCertificates=st.savedCertificates;
+        if(st.seminars) seminars=st.seminars;
+        if(st.resumeEduEntries) resumeEduEntries=st.resumeEduEntries;
+        if(st.resumeProjectEntries) resumeProjectEntries=st.resumeProjectEntries;
+        if(st.resumeCertEntries) resumeCertEntries=st.resumeCertEntries;
+        if(st.resumeFields){
+            ['rv_name','rv_email','rv_phone','rv_location','rv_url','rv_summary','rv_techskills','rv_tools','rv_softskills'].forEach(id=>{const el=document.getElementById(id);if(el&&st.resumeFields[id])el.value=st.resumeFields[id];});
+        }
+        if(!resumeEduEntries.length)     addResumeEntry('edu',true);
+        if(!resumeProjectEntries.length) addResumeEntry('project',true);
+        if(!resumeCertEntries.length)    addResumeEntry('cert',true);
+        renderResumeEntries();
+        updatePreview();
+    }
+
+    function toggleAccordion(btn){const body=btn.nextElementSibling;const arrow=btn.querySelector('.accordion-arrow');const open=body.classList.contains('open');body.classList.toggle('open',!open);if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';}
+
+    function addResumeEntry(type,silent=false){
+        const id=Date.now()+Math.random();
+        if(type==='edu')     resumeEduEntries.push({id,institution:'',degree:'',branch:'',year:'',cgpa:''});
+        if(type==='project') resumeProjectEntries.push({id,title:'',tech:'',desc:''});
+        if(type==='cert')    resumeCertEntries.push({id,title:'',org:'',year:''});
+        if(!silent){renderResumeEntries();updatePreview();}
+    }
+    function removeResumeEntry(type,id){
+        if(type==='edu')     resumeEduEntries=resumeEduEntries.filter(e=>e.id!==id);
+        if(type==='project') resumeProjectEntries=resumeProjectEntries.filter(e=>e.id!==id);
+        if(type==='cert')    resumeCertEntries=resumeCertEntries.filter(e=>e.id!==id);
+        renderResumeEntries();updatePreview();
+    }
+    function collectResumeEntries(){
+        document.querySelectorAll('#rv_edu_entries .resume-entry').forEach(el=>{const e=resumeEduEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.institution=el.querySelector('[data-f="institution"]')?.value||'';e.degree=el.querySelector('[data-f="degree"]')?.value||'';e.branch=el.querySelector('[data-f="branch"]')?.value||'';e.year=el.querySelector('[data-f="year"]')?.value||'';e.cgpa=el.querySelector('[data-f="cgpa"]')?.value||'';});
+        document.querySelectorAll('#rv_project_entries .resume-entry').forEach(el=>{const e=resumeProjectEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.tech=el.querySelector('[data-f="tech"]')?.value||'';e.desc=el.querySelector('[data-f="desc"]')?.value||'';});
+        document.querySelectorAll('#rv_cert_entries .resume-entry').forEach(el=>{const e=resumeCertEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.org=el.querySelector('[data-f="org"]')?.value||'';e.year=el.querySelector('[data-f="year"]')?.value||'';});
+    }
+    function renderResumeEntries(){
+        const edu=document.getElementById('rv_edu_entries');
+        if(edu)edu.innerHTML=resumeEduEntries.map((e,i)=>`<div class="resume-entry" data-id="${e.id}"><div class="resume-entry-header"><span class="resume-entry-label">Entry ${i+1}</span>${resumeEduEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('edu',${e.id})">✕ Remove</button>`:''}</div><div class="form-row"><div class="form-group"><input type="text" data-f="institution" placeholder="Institution Name" value="${e.institution}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="degree" placeholder="Degree / Course" value="${e.degree}" oninput="updatePreview()"></div></div><div class="form-row"><div class="form-group"><input type="text" data-f="branch" placeholder="Branch / Specialization" value="${e.branch}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year (e.g. 2022–2024)" value="${e.year}" oninput="updatePreview()"></div></div><div class="form-group"><input type="text" data-f="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa}" oninput="updatePreview()"></div></div>`).join('');
+        const proj=document.getElementById('rv_project_entries');
+        if(proj)proj.innerHTML=resumeProjectEntries.map((p,i)=>`<div class="resume-entry" data-id="${p.id}"><div class="resume-entry-header"><span class="resume-entry-label">Project ${i+1}</span>${resumeProjectEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('project',${p.id})">✕ Remove</button>`:''}</div><div class="form-group"><input type="text" data-f="title" placeholder="Project Title" value="${p.title}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="tech" placeholder="Technologies Used" value="${p.tech}" oninput="updatePreview()"></div><div class="form-group"><textarea class="resume-textarea" data-f="desc" placeholder="Brief description..." rows="2" oninput="updatePreview()">${p.desc}</textarea></div></div>`).join('');
+        const cert=document.getElementById('rv_cert_entries');
+        if(cert)cert.innerHTML=resumeCertEntries.map((c,i)=>`<div class="resume-entry" data-id="${c.id}"><div class="resume-entry-header"><span class="resume-entry-label">Certificate ${i+1}</span>${resumeCertEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('cert',${c.id})">✕ Remove</button>`:''}</div><div class="form-group"><input type="text" data-f="title" placeholder="Certificate Title" value="${c.title}" oninput="updatePreview()"></div><div class="form-row"><div class="form-group"><input type="text" data-f="org" placeholder="Issuing Organization" value="${c.org}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year" value="${c.year}" oninput="updatePreview()"></div></div></div>`).join('');
+        // Seminars readonly
+        const sd=document.getElementById('rv_seminars_display');
+        if(sd)sd.innerHTML=seminars.completed.length?seminars.completed.map(s=>`<div class="seminar-readonly-item"><span class="pro-badge">🎓</span><span><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</span></div>`).join(''):'<p class="empty-state-text" style="padding:0.5rem 0;font-size:0.85rem">Complete seminars in the <a href="seminars.html">Seminars tab</a> to auto-populate here.</p>';
+    }
+    function generateFromProfile(){
+        const setV=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
+        setV('rv_name',profile.name||currentUser?.user_metadata?.full_name||'');
+        setV('rv_email',profile.email||currentUser?.email||'');
+        setV('rv_phone',profile.phone||'');
+        setV('rv_location',profile.location||'');
+        setV('rv_url',profile.url||'');
+        setV('rv_summary',profile.bio||'');
+        setV('rv_techskills',profile.techskills||'');
+        setV('rv_tools',profile.tools||'');
+        setV('rv_softskills',profile.softskills||'');
+        if(profile.edu.length)      resumeEduEntries=profile.edu.map(e=>({id:Date.now()+Math.random(),...e}));
+        if(profile.projects.length) resumeProjectEntries=profile.projects.map(p=>({id:Date.now()+Math.random(),...p}));
+        if(savedCertificates.length) resumeCertEntries=savedCertificates.map(c=>({id:Date.now()+Math.random(),title:c.title,org:c.org,year:c.year}));
+        renderResumeEntries();
+        updatePreview();
+        showNotif('Resume generated from profile! Fine-tune as needed.');
+    }
+    function v(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+    function sT(id,txt){const e=document.getElementById(id);if(e)e.textContent=txt;}
+    function updatePreview(){
+        collectResumeEntries();
+        sT('prev_name',v('rv_name')||'Your Full Name');
+        const cp=[v('rv_email'),v('rv_phone'),v('rv_location')].filter(Boolean);
+        sT('prev_contact',cp.length?cp.join('  |  '):'email  |  phone  |  location');
+        const urlEl=document.getElementById('prev_url'),urlVal=v('rv_url');
+        if(urlEl){urlEl.textContent=urlVal;urlEl.style.display=urlVal?'block':'none';}
+        const sumSec=document.getElementById('prev_summary_section'),sumVal=v('rv_summary');
+        if(sumSec){sT('prev_summary',sumVal);sumSec.style.display=sumVal?'block':'none';}
+        const eb=document.getElementById('prev_edu_body');
+        if(eb){const valid=resumeEduEntries.filter(e=>e.institution||e.degree);eb.innerHTML=valid.length?valid.map(e=>`<div style="margin-bottom:6px"><div class="a4-row-flex"><span class="a4-bold">${e.institution||'—'}</span><span class="a4-right">${e.year||''}</span></div><div class="a4-row-flex"><span class="a4-italic">${[e.degree,e.branch].filter(Boolean).join(', ')||''}</span><span class="a4-right a4-muted">${e.cgpa?'CGPA: '+e.cgpa:''}</span></div></div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div>';}
+        sT('prev_techskills',v('rv_techskills')||'—');
+        sT('prev_tools',v('rv_tools')||'—');
+        sT('prev_softskills',v('rv_softskills')||'—');
+        const pb=document.getElementById('prev_projects_body');
+        if(pb){const valid=resumeProjectEntries.filter(p=>p.title);pb.innerHTML=valid.length?valid.map(p=>`<div style="margin-bottom:7px"><div class="a4-row-flex"><span class="a4-bold">${p.title}</span><span class="a4-right a4-muted a4-italic">${p.tech||''}</span></div>${p.desc?`<div class="a4-desc">${p.desc}</div>`:''}</div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div>';}
+        const cb=document.getElementById('prev_certs_body');
+        if(cb){const valid=resumeCertEntries.filter(c=>c.title);cb.innerHTML=valid.length?valid.map(c=>`<div style="margin-bottom:5px"><div class="a4-row-flex"><span class="a4-bold">${c.title}</span><span class="a4-right a4-muted">${c.year||''}</span></div>${c.org?`<div class="a4-muted a4-italic">${c.org}</div>`:''}</div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div>';}
+        const sec=document.getElementById('prev_seminars_section'),sbody=document.getElementById('prev_seminars_body');
+        if(sec&&sbody){if(seminars.completed.length){sec.style.display='block';sbody.innerHTML=seminars.completed.map(s=>`<div style="margin-bottom:4px" class="a4-row-flex"><span class="a4-bold">${s.title}</span><span class="a4-right a4-muted">${s.org?s.org+(s.date?', ':''):''}${s.date?new Date(s.date).getFullYear():''}</span></div>`).join('');}else sec.style.display='none';}
+        // Persist resume fields
+        const rf={};
+        ['rv_name','rv_email','rv_phone','rv_location','rv_url','rv_summary','rv_techskills','rv_tools','rv_softskills'].forEach(id=>rf[id]=v(id));
+        saveState({resumeEduEntries,resumeProjectEntries,resumeCertEntries,resumeFields:rf});
+    }
+    function exportPDF(){
+        const preview=document.getElementById('a4Preview');
+        if(!preview){showNotif('Nothing to export.','error');return;}
+        const w=window.open('','_blank');
+        w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resume</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Times New Roman',serif;font-size:11px;color:#111}@page{size:A4;margin:0}.a4-paper{width:210mm;min-height:297mm;padding:16mm 18mm;background:white}</style><link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"></head><body>`+preview.outerHTML+`</body></html>`);
+        w.document.close();
+        w.focus();
+        setTimeout(()=>{w.print();},600);
+    }
+
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        if(isTestSession()){
+            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
+            window.location.href='index.html'; return;
+        }
+        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+    }
+    </script>
+</body>
+</html>

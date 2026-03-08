@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js"></script>
 </head>
 <body>
 
@@ -60,10 +62,18 @@
     <div class="notif-toast" id="notifToast"></div>
 
     <script>
-    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
-    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
-    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
     let currentUser=null;
+
+    // ── FIREBASE AUTH GUARD ──
+    (async function(){
+        var user = await rbAuth.getCurrentUser();
+        if(!user){ window.location.href='index.html'; return; }
+        currentUser = user;
+        init();
+    })();
+    rbAuth.onAuthChange(function(user){
+        if(!user && !rbAuth.isTestSession()) window.location.href='index.html';
+    });
     let managedFiles=[];
 
     function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
@@ -75,24 +85,6 @@
     }
     function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
     function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
-
-    // ── TEST SESSION HELPERS ──
-    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
-    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
-
-    (async()=>{
-        // Check test session first
-        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
-        // Fall back to Supabase
-        const{data:{session}}=await supabaseClient.auth.getSession();
-        if(!session){window.location.href='index.html';return;}
-        currentUser=session.user;
-        init();
-    })();
-    supabaseClient.auth.onAuthStateChange((event,session)=>{
-        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
-    });
-
     function init(){
         renderSidebar();
         document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
@@ -121,11 +113,9 @@
     function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
     async function confirmLogout(){
         document.getElementById('logoutToast').classList.remove('show');
-        if(isTestSession()){
-            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
-            window.location.href='index.html'; return;
-        }
-        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+        var result = await rbAuth.logout();
+        if(result.error){ alert('Logout failed.'); return; }
+        window.location.href='index.html';
     }
     </script>
 </body>

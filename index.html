@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js"></script>
     <style>
         .test-login-banner {
             background: #fff8e1;
@@ -79,7 +81,7 @@
                 </div>
                 <div class="auth-right">
                     <div class="test-login-banner">
-                        &#129514; <span><strong>Test login:</strong> test@demo.com &nbsp;/&nbsp; <strong>pass:</strong> test123</span>
+                        &#129514; <span><strong>Test login:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="76021305023612131b195815191b">[email&#160;protected]</a> &nbsp;/&nbsp; <strong>pass:</strong> test123</span>
                         <button class="test-autofill-btn" onclick="autofillTestLogin()">Auto-fill &#8599;</button>
                     </div>
                     <div class="error-message" id="loginError"></div>
@@ -137,146 +139,61 @@
     </div>
 
     <script>
-    // ═══════════════════════════════════════
-    // TEST ACCOUNT — hardcoded credentials
-    // ═══════════════════════════════════════
-    const TEST_EMAIL    = 'test@demo.com';
-    const TEST_PASSWORD = 'test123';
-    const TEST_USER     = {
-        email: TEST_EMAIL,
-        id: 'test-user-001',
-        user_metadata: { full_name: 'Test User', first_name: 'Test', last_name: 'User' }
-    };
-
-    function isTestSession() {
-        try { return sessionStorage.getItem('rb_test_session') === 'true'; } catch(e){ return false; }
-    }
-    function setTestSession(on) {
-        try { on ? sessionStorage.setItem('rb_test_session','true') : sessionStorage.removeItem('rb_test_session'); } catch(e){}
-    }
-
-    // ── SUPABASE ──
-    const SUPABASE_URL      = 'https://ppcbapjwpwkytntyssuu.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
-    const supabaseClient    = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ── ON LOAD ──
-    (async () => {
-        if (isTestSession()) { window.location.href = 'dashboard.html'; return; }
-        const { data:{ session } } = await supabaseClient.auth.getSession();
-        if (session) window.location.href = 'dashboard.html';
-    })();
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN') window.location.href = 'dashboard.html';
+    // ── ON LOAD: redirect if already signed in ──
+    rbAuth.getCurrentUser().then(function(user){
+        if(user) window.location.href='dashboard.html';
+    });
+    rbAuth.onAuthChange(function(user){
+        if(user) window.location.href='dashboard.html';
     });
 
-    let currentView = 'home';
-    function showLogin() {
-        currentView = 'login';
-        document.getElementById('mainContainer').classList.add('login-active');
-        document.getElementById('loginSection').style.display = 'flex';
-        document.getElementById('signupSection').style.display = 'none';
-        clearMessages();
-    }
-    function showSignup() {
-        currentView = 'signup';
-        document.getElementById('mainContainer').classList.add('login-active');
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('signupSection').style.display = 'flex';
-        clearMessages();
-    }
-    function hideAuth() {
-        currentView = 'home';
-        document.getElementById('mainContainer').classList.remove('login-active');
-        clearMessages();
-    }
-    function clearMessages() {
-        document.querySelectorAll('.error-message,.success-message').forEach(el => { el.classList.remove('show'); el.textContent=''; });
-    }
-    function showError(id, msg)   { const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
-    function showSuccess(id, msg) { const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+    var currentView='home';
+    function showLogin(){currentView='login';document.getElementById('mainContainer').classList.add('login-active');document.getElementById('loginSection').style.display='flex';document.getElementById('signupSection').style.display='none';clearMessages();}
+    function showSignup(){currentView='signup';document.getElementById('mainContainer').classList.add('login-active');document.getElementById('loginSection').style.display='none';document.getElementById('signupSection').style.display='flex';clearMessages();}
+    function hideAuth(){currentView='home';document.getElementById('mainContainer').classList.remove('login-active');clearMessages();}
+    function clearMessages(){document.querySelectorAll('.error-message,.success-message').forEach(function(el){el.classList.remove('show');el.textContent='';});}
+    function showError(id,msg){var e=document.getElementById(id);e.textContent=msg;e.classList.add('show');}
+    function showSuccess(id,msg){var e=document.getElementById(id);e.textContent=msg;e.classList.add('show');}
+    function autofillTestLogin(){document.getElementById('loginEmail').value=rbAuth.TEST_EMAIL;document.getElementById('loginPassword').value=rbAuth.TEST_PASSWORD;}
 
-    function autofillTestLogin() {
-        document.getElementById('loginEmail').value    = TEST_EMAIL;
-        document.getElementById('loginPassword').value = TEST_PASSWORD;
-    }
-
-    async function handleLogin(e) {
+    async function handleLogin(e){
         e.preventDefault(); clearMessages();
-        const email    = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const btn      = document.getElementById('loginSubmitBtn');
-        btn.disabled   = true;
-        btn.innerHTML  = '<span class="spinner"></span> Logging in...';
-
-        // ── TEST ACCOUNT BYPASS ──
-        if (email === TEST_EMAIL && password === TEST_PASSWORD) {
-            setTestSession(true);
-            try {
-                const existing = JSON.parse(sessionStorage.getItem('rb_state') || '{}');
-                if (!existing.profile) existing.profile = {};
-                if (!existing.profile.name)  existing.profile.name  = TEST_USER.user_metadata.full_name;
-                if (!existing.profile.email) existing.profile.email = TEST_EMAIL;
-                sessionStorage.setItem('rb_state', JSON.stringify(existing));
-            } catch(err) {}
-            window.location.href = 'dashboard.html';
-            return;
-        }
-
-        // ── WRONG TEST PASSWORD ──
-        if (email === TEST_EMAIL) {
-            showError('loginError', 'Wrong password for test account. Use: test123');
-            btn.disabled  = false;
-            btn.textContent = 'login';
-            return;
-        }
-
-        // ── REAL SUPABASE LOGIN ──
-        try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-        } catch (err) {
-            showError('loginError', err.message || 'Login failed.');
-            btn.disabled  = false;
-            btn.textContent = 'login';
-        }
+        var email=document.getElementById('loginEmail').value.trim();
+        var password=document.getElementById('loginPassword').value;
+        var btn=document.getElementById('loginSubmitBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Logging in...';
+        var result=await rbAuth.loginWithEmail(email,password);
+        if(result.error){showError('loginError',result.error.message);btn.disabled=false;btn.textContent='login';}
+        else{window.location.href='dashboard.html';}
     }
-
-    async function handleSignup(e) {
+    async function handleSignup(e){
         e.preventDefault(); clearMessages();
-        const fn=document.getElementById('signupFirstName').value, ln=document.getElementById('signupLastName').value;
-        const email=document.getElementById('signupEmail').value, pw=document.getElementById('signupPassword').value;
-        const cpw=document.getElementById('signupConfirmPassword').value;
-        const vidwan=document.getElementById('signupVidwan').value, phone=document.getElementById('signupPhone').value;
-        const btn=document.getElementById('signupSubmitBtn');
-        if (pw!==cpw) { showError('signupError','Passwords do not match'); return; }
-        if (email === TEST_EMAIL) { showError('signupError','This email is reserved for the test account. Switch to Login instead.'); return; }
+        var fn=document.getElementById('signupFirstName').value.trim();
+        var ln=document.getElementById('signupLastName').value.trim();
+        var email=document.getElementById('signupEmail').value.trim();
+        var pw=document.getElementById('signupPassword').value;
+        var cpw=document.getElementById('signupConfirmPassword').value;
+        var btn=document.getElementById('signupSubmitBtn');
+        if(pw!==cpw){showError('signupError','Passwords do not match');return;}
         btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Creating account...';
-        try {
-            const { data, error } = await supabaseClient.auth.signUp({ email, password:pw,
-                options:{ data:{ first_name:fn, last_name:ln, full_name:`${fn} ${ln}`, vidwan_id:vidwan, phone } } });
-            if (error) throw error;
-            if (data.user && !data.session) { showSuccess('signupSuccess','Account created! Check your email to verify.'); document.getElementById('signupForm').reset(); }
-        } catch (err) { showError('signupError', err.message||'Signup failed.'); }
-        finally { btn.disabled=false; btn.textContent='Sign up'; }
+        var result=await rbAuth.signupWithEmail(email,pw,fn,ln);
+        if(result.error){showError('signupError',result.error.message);}
+        else{showSuccess('signupSuccess','Account created! Redirecting...');document.getElementById('signupForm').reset();setTimeout(function(){window.location.href='dashboard.html';},1500);}
+        btn.disabled=false; btn.textContent='Sign up';
     }
-
-    async function handleGoogleLogin() {
-        const btn=document.getElementById('googleLoginBtn');
-        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Redirecting...';
-        try {
-            const { error } = await supabaseClient.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin+'/dashboard.html' } });
-            if (error) throw error;
-        } catch (err) { showError('loginError','Google login failed.'); btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span> <span>Login with google</span>'; }
+    async function handleGoogleLogin(){
+        var btn=document.getElementById('googleLoginBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Signing in...';
+        var result=await rbAuth.loginWithGoogle();
+        if(result.error){showError('loginError',result.error.message);btn.disabled=false;btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Login with google</span>';}
+        else{window.location.href='dashboard.html';}
     }
-
-    async function handleGoogleSignup() {
-        const btn=document.getElementById('googleSignupBtn');
-        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Redirecting...';
-        try {
-            const { error } = await supabaseClient.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin+'/dashboard.html' } });
-            if (error) throw error;
-        } catch (err) { showError('signupError','Google signup failed.'); btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span> <span>Continue with google</span>'; }
+    async function handleGoogleSignup(){
+        var btn=document.getElementById('googleSignupBtn');
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Signing in...';
+        var result=await rbAuth.loginWithGoogle();
+        if(result.error){showError('signupError',result.error.message);btn.disabled=false;btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Continue with google</span>';}
+        else{window.location.href='dashboard.html';}
     }
     </script>
 </body>

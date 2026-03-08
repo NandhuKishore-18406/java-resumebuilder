@@ -8,7 +8,67 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js"></script>
+    <style>
+    /* ── A4 PREVIEW ── */
+    .a4-paper{
+        width:210mm; min-height:297mm;
+        background:#fff; color:#111;
+        font-family:'Times New Roman',Times,serif;
+        font-size:10.5pt; line-height:1.35;
+        padding:14mm 16mm 14mm 16mm;
+        box-shadow:0 4px 32px rgba(0,0,0,0.13);
+        box-sizing:border-box;
+    }
+    /* Header */
+    .rv-hd-name{font-size:18pt;font-weight:700;text-align:center;letter-spacing:.3px;margin-bottom:3px;font-family:'Times New Roman',serif;}
+    .rv-hd-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:8.5pt;color:#222;margin-bottom:2px;align-items:center;}
+    .rv-hd-row span{display:flex;align-items:center;gap:3px;}
+    .rv-hd-row a{color:#111;text-decoration:none;}
+    .rv-hd-divider{border:none;border-top:1.5px solid #111;margin:5px 0 7px;}
+    /* Two-column body */
+    .rv-body{display:grid;grid-template-columns:1fr 1.13fr;gap:0 14px;}
+    /* Section */
+    .rv-sec{margin-bottom:9px;}
+    .rv-sec-title{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #111;padding-bottom:1px;margin-bottom:5px;}
+    /* Education entry */
+    .rv-edu-entry{margin-bottom:6px;}
+    .rv-edu-inst{font-weight:700;font-size:10pt;}
+    .rv-edu-deg{font-style:italic;font-size:9.5pt;}
+    .rv-edu-meta{font-size:9pt;color:#333;}
+    /* Skills */
+    .rv-skill-cat{font-weight:700;font-size:9.5pt;margin-bottom:1px;}
+    .rv-skill-val{font-size:9.5pt;color:#222;margin-bottom:5px;}
+    /* Projects */
+    .rv-proj-entry{margin-bottom:7px;}
+    .rv-proj-title{font-weight:700;font-size:9.5pt;display:inline;}
+    .rv-proj-tech{font-style:italic;font-size:9pt;color:#333;display:inline;}
+    .rv-proj-link{font-size:8.5pt;color:#333;}
+    .rv-proj-bullets{margin:2px 0 0 12px;padding:0;font-size:9.5pt;}
+    .rv-proj-bullets li{margin-bottom:2px;}
+    /* Experience */
+    .rv-exp-entry{margin-bottom:7px;}
+    .rv-exp-role{font-weight:700;font-size:9.5pt;}
+    .rv-exp-meta{font-size:9pt;color:#333;margin-bottom:2px;}
+    .rv-exp-bullets{margin:2px 0 0 12px;padding:0;font-size:9.5pt;}
+    .rv-exp-bullets li{margin-bottom:2px;}
+    /* Achievements */
+    .rv-ach-entry{margin-bottom:5px;}
+    .rv-ach-title{font-weight:700;font-size:9.5pt;}
+    .rv-ach-meta{font-size:9pt;color:#333;}
+    /* Certs / Seminars / Interests */
+    .rv-list-item{font-size:9.5pt;margin-bottom:3px;display:flex;gap:5px;}
+    .rv-list-item::before{content:"•";flex-shrink:0;}
+    /* Row flex */
+    .rv-row{display:flex;justify-content:space-between;align-items:baseline;gap:4px;}
+    .rv-right{text-align:right;white-space:nowrap;font-size:9pt;color:#333;}
+    .rv-muted{color:#444;font-size:9pt;}
+
+    /* ── FORM PANEL new fields ── */
+    .field-hint{font-size:0.72rem;color:#888;display:block;margin-top:2px;}
+    </style>
 </head>
 <body>
 
@@ -32,6 +92,7 @@
             <div class="tab-content active" id="tab-resume-builder">
                 <div class="tab-inner resume-builder-layout">
 
+                    <!-- ══ FORM PANEL ══ -->
                     <div class="resume-form-panel">
                         <div class="resume-form-topbar">
                             <div>
@@ -47,14 +108,21 @@
                             <div class="accordion-body open">
                                 <div class="form-row">
                                     <div class="form-group"><input type="text" id="rv_name" placeholder="Full Name" oninput="updatePreview()"></div>
-                                    <div class="form-group"><input type="email" id="rv_email" placeholder="Email Address" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="text" id="rv_degree_short" placeholder="Degree (e.g. M.Sc. Software Systems)" oninput="updatePreview()"></div>
                                 </div>
                                 <div class="form-row">
+                                    <div class="form-group"><input type="email" id="rv_email" placeholder="Email Address" oninput="updatePreview()"></div>
                                     <div class="form-group"><input type="tel" id="rv_phone" placeholder="Phone Number" oninput="updatePreview()"></div>
-                                    <div class="form-group"><input type="text" id="rv_location" placeholder="Location" oninput="updatePreview()"></div>
                                 </div>
-                                <div class="form-group"><input type="url" id="rv_url" placeholder="LinkedIn / Portfolio URL" oninput="updatePreview()"></div>
-                                <div class="form-group"><textarea class="resume-textarea" id="rv_summary" placeholder="Professional Summary..." rows="2" oninput="updatePreview()"></textarea></div>
+                                <div class="form-row">
+                                    <div class="form-group"><input type="text" id="rv_location" placeholder="Location (e.g. Coimbatore, India)" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="text" id="rv_linkedin" placeholder="LinkedIn URL or username" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><input type="text" id="rv_github" placeholder="GitHub URL or username" oninput="updatePreview()"></div>
+                                    <div class="form-group"><input type="text" id="rv_leetcode" placeholder="LeetCode URL or username (optional)" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="form-group"><textarea class="resume-textarea" id="rv_summary" placeholder="Professional Summary / Profile..." rows="2" oninput="updatePreview()"></textarea></div>
                             </div>
                         </div>
 
@@ -71,9 +139,11 @@
                         <div class="accordion">
                             <button class="accordion-header" onclick="toggleAccordion(this)"><span>Skills</span><span class="accordion-arrow">▾</span></button>
                             <div class="accordion-body">
-                                <div class="form-group"><input type="text" id="rv_techskills" placeholder="Technical Skills (comma separated)" oninput="updatePreview()"></div>
-                                <div class="form-group"><input type="text" id="rv_tools" placeholder="Tools &amp; Technologies" oninput="updatePreview()"></div>
-                                <div class="form-group"><input type="text" id="rv_softskills" placeholder="Soft Skills" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_prog_langs" placeholder="Programming Languages (e.g. Python, Java, C++)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_frameworks" placeholder="Frameworks &amp; Libraries (e.g. React.js, Node.js)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_databases" placeholder="Databases (e.g. MySQL, MongoDB)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_tools" placeholder="Developer Tools (e.g. Git, Docker, VS Code)" oninput="updatePreview()"></div>
+                                <div class="form-group"><input type="text" id="rv_softskills" placeholder="Soft Skills (optional)" oninput="updatePreview()"></div>
                             </div>
                         </div>
 
@@ -83,6 +153,24 @@
                             <div class="accordion-body">
                                 <div id="rv_project_entries"></div>
                                 <button class="add-more-btn" onclick="addResumeEntry('project')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Professional Experience -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Professional Experience</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div id="rv_exp_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('exp')">+ Add More</button>
+                            </div>
+                        </div>
+
+                        <!-- Achievements -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Achievements</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div id="rv_ach_entries"></div>
+                                <button class="add-more-btn" onclick="addResumeEntry('ach')">+ Add More</button>
                             </div>
                         </div>
 
@@ -98,7 +186,7 @@
                         <!-- Seminars (auto-synced) -->
                         <div class="accordion">
                             <button class="accordion-header" onclick="toggleAccordion(this)">
-                                <span>Seminars</span><span class="accordion-badge">auto-synced</span><span class="accordion-arrow">▾</span>
+                                <span>Seminars &amp; Workshops</span><span class="accordion-badge">auto-synced</span><span class="accordion-arrow">▾</span>
                             </button>
                             <div class="accordion-body">
                                 <div id="rv_seminars_display" class="seminars-readonly-list">
@@ -107,49 +195,106 @@
                             </div>
                         </div>
 
+                        <!-- Interests -->
+                        <div class="accordion">
+                            <button class="accordion-header" onclick="toggleAccordion(this)"><span>Interests</span><span class="accordion-arrow">▾</span></button>
+                            <div class="accordion-body">
+                                <div class="form-group"><input type="text" id="rv_interests" placeholder="Interests (comma separated, e.g. Python Scripting, Ethical Hacking)" oninput="updatePreview()"></div>
+                            </div>
+                        </div>
+
                         <div class="resume-export-bar">
                             <button class="btn btn-dark export-btn" onclick="exportPDF()">⬇ Export Resume as PDF</button>
                         </div>
                     </div>
 
-                    <!-- Live A4 Preview -->
+                    <!-- ══ LIVE A4 PREVIEW ══ -->
                     <div class="resume-preview-panel">
                         <div class="preview-label">Live Preview</div>
                         <div class="a4-paper" id="a4Preview">
-                            <div class="a4-header">
-                                <div class="a4-name" id="prev_name">Your Full Name</div>
-                                <div class="a4-contact" id="prev_contact">email | phone | location</div>
-                                <div class="a4-url" id="prev_url" style="display:none"></div>
-                            </div>
-                            <div class="a4-section" id="prev_summary_section" style="display:none">
-                                <div class="a4-section-title">Summary</div>
-                                <div class="a4-section-body a4-desc" id="prev_summary"></div>
-                            </div>
-                            <div class="a4-section">
-                                <div class="a4-section-title">Education</div>
-                                <div class="a4-section-body" id="prev_edu_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div></div>
-                            </div>
-                            <div class="a4-section">
-                                <div class="a4-section-title">Skills</div>
-                                <div class="a4-section-body">
-                                    <div class="a4-skill-row"><span class="a4-skill-label">Technical:</span><span id="prev_techskills" class="a4-muted">—</span></div>
-                                    <div class="a4-skill-row"><span class="a4-skill-label">Tools:</span><span id="prev_tools" class="a4-muted">—</span></div>
-                                    <div class="a4-skill-row"><span class="a4-skill-label">Soft:</span><span id="prev_softskills" class="a4-muted">—</span></div>
+
+                            <!-- Header -->
+                            <div style="text-align:center;margin-bottom:4px;">
+                                <div class="rv-hd-name" id="prev_name">Your Full Name</div>
+                                <div class="rv-hd-row" id="prev_hd_row1">
+                                    <span id="prev_degree_short_wrap" style="display:none"><span id="prev_degree_short"></span></span>
+                                    <span id="prev_location_wrap" style="display:none">📍 <span id="prev_location"></span></span>
+                                    <span id="prev_phone_wrap" style="display:none">📞 <span id="prev_phone"></span></span>
+                                </div>
+                                <div class="rv-hd-row" id="prev_hd_row2">
+                                    <span id="prev_email_wrap" style="display:none">✉ <a id="prev_email"></a></span>
+                                    <span id="prev_linkedin_wrap" style="display:none">in <a id="prev_linkedin"></a></span>
+                                    <span id="prev_github_wrap" style="display:none">⌥ <a id="prev_github"></a></span>
+                                    <span id="prev_leetcode_wrap" style="display:none">◈ <a id="prev_leetcode"></a></span>
                                 </div>
                             </div>
-                            <div class="a4-section">
-                                <div class="a4-section-title">Projects</div>
-                                <div class="a4-section-body" id="prev_projects_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div></div>
-                            </div>
-                            <div class="a4-section">
-                                <div class="a4-section-title">Certificates</div>
-                                <div class="a4-section-body" id="prev_certs_body"><div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div></div>
-                            </div>
-                            <div class="a4-section" id="prev_seminars_section" style="display:none">
-                                <div class="a4-section-title">Seminars &amp; Workshops</div>
-                                <div class="a4-section-body" id="prev_seminars_body"></div>
-                            </div>
-                        </div>
+                            <hr class="rv-hd-divider">
+
+                            <!-- Two-column body -->
+                            <div class="rv-body">
+
+                                <!-- LEFT column -->
+                                <div>
+                                    <!-- Profile / Summary -->
+                                    <div class="rv-sec" id="prev_summary_section" style="display:none">
+                                        <div class="rv-sec-title">Profile</div>
+                                        <div style="font-size:9.5pt;" id="prev_summary"></div>
+                                    </div>
+
+                                    <!-- Education -->
+                                    <div class="rv-sec">
+                                        <div class="rv-sec-title">Education</div>
+                                        <div id="prev_edu_body"><span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in education above</span></div>
+                                    </div>
+
+                                    <!-- Projects -->
+                                    <div class="rv-sec" id="prev_projects_section">
+                                        <div class="rv-sec-title">Projects</div>
+                                        <div id="prev_projects_body"><span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in projects above</span></div>
+                                    </div>
+
+                                    <!-- Skills -->
+                                    <div class="rv-sec" id="prev_skills_section">
+                                        <div class="rv-sec-title">Skills</div>
+                                        <div id="prev_skills_body"></div>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT column -->
+                                <div>
+                                    <!-- Professional Experience -->
+                                    <div class="rv-sec" id="prev_exp_section" style="display:none">
+                                        <div class="rv-sec-title">Professional Experience</div>
+                                        <div id="prev_exp_body"></div>
+                                    </div>
+
+                                    <!-- Achievements -->
+                                    <div class="rv-sec" id="prev_ach_section" style="display:none">
+                                        <div class="rv-sec-title">Achievements</div>
+                                        <div id="prev_ach_body"></div>
+                                    </div>
+
+                                    <!-- Certificates -->
+                                    <div class="rv-sec" id="prev_certs_section">
+                                        <div class="rv-sec-title">Certificates</div>
+                                        <div id="prev_certs_body"><span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in certificates above</span></div>
+                                    </div>
+
+                                    <!-- Seminars -->
+                                    <div class="rv-sec" id="prev_seminars_section" style="display:none">
+                                        <div class="rv-sec-title">Seminars &amp; Workshops</div>
+                                        <div id="prev_seminars_body"></div>
+                                    </div>
+
+                                    <!-- Interests -->
+                                    <div class="rv-sec" id="prev_interests_section" style="display:none">
+                                        <div class="rv-sec-title">Interests</div>
+                                        <div id="prev_interests_body"></div>
+                                    </div>
+                                </div>
+
+                            </div><!-- /rv-body -->
+                        </div><!-- /a4-paper -->
                     </div>
 
                 </div>
@@ -167,16 +312,26 @@
     <div class="notif-toast" id="notifToast"></div>
 
     <script>
-    const SUPABASE_URL='https://ppcbapjwpwkytntyssuu.supabase.co';
-    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwY2JhcGp3cHdreXRudHlzc3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzIwNzQsImV4cCI6MjA4NzAwODA3NH0.Rn7HqRH-xOKDT2XTvZ9fdI5TSZrIsAiqO4crgWLx-TI';
-    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
     let currentUser=null;
     let profile={name:'',email:'',phone:'',location:'',url:'',bio:'',techskills:'',tools:'',softskills:'',edu:[],projects:[]};
     let savedCertificates=[];
     let seminars={completed:[],queue:[]};
     let resumeEduEntries=[];
     let resumeProjectEntries=[];
+    let resumeExpEntries=[];
+    let resumeAchEntries=[];
     let resumeCertEntries=[];
+
+    // ── FIREBASE AUTH GUARD ──
+    (async function(){
+        var user = await rbAuth.getCurrentUser();
+        if(!user){ window.location.href='index.html'; return; }
+        currentUser = user;
+        init();
+    })();
+    rbAuth.onAuthChange(function(user){
+        if(!user && !rbAuth.isTestSession()) window.location.href='index.html';
+    });
 
     function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
     function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
@@ -188,23 +343,6 @@
     function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
     function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
 
-    // ── TEST SESSION HELPERS ──
-    const TEST_USER_MOCK = { email:'test@demo.com', id:'test-user-001', user_metadata:{ full_name:'Test User', first_name:'Test', last_name:'User' } };
-    function isTestSession(){ try{ return sessionStorage.getItem('rb_test_session')==='true'; }catch(e){ return false; } }
-
-    (async()=>{
-        // Check test session first
-        if(isTestSession()){ currentUser=TEST_USER_MOCK; init(); return; }
-        // Fall back to Supabase
-        const{data:{session}}=await supabaseClient.auth.getSession();
-        if(!session){window.location.href='index.html';return;}
-        currentUser=session.user;
-        init();
-    })();
-    supabaseClient.auth.onAuthStateChange((event,session)=>{
-        if(event==='SIGNED_OUT'&&!isTestSession()) window.location.href='index.html';
-    });
-
     function init(){
         renderSidebar();
         document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
@@ -212,103 +350,299 @@
         if(st.profile) profile={...profile,...st.profile};
         if(st.savedCertificates) savedCertificates=st.savedCertificates;
         if(st.seminars) seminars=st.seminars;
-        if(st.resumeEduEntries) resumeEduEntries=st.resumeEduEntries;
+        if(st.resumeEduEntries)     resumeEduEntries=st.resumeEduEntries;
         if(st.resumeProjectEntries) resumeProjectEntries=st.resumeProjectEntries;
-        if(st.resumeCertEntries) resumeCertEntries=st.resumeCertEntries;
+        if(st.resumeExpEntries)     resumeExpEntries=st.resumeExpEntries;
+        if(st.resumeAchEntries)     resumeAchEntries=st.resumeAchEntries;
+        if(st.resumeCertEntries)    resumeCertEntries=st.resumeCertEntries;
         if(st.resumeFields){
-            ['rv_name','rv_email','rv_phone','rv_location','rv_url','rv_summary','rv_techskills','rv_tools','rv_softskills'].forEach(id=>{const el=document.getElementById(id);if(el&&st.resumeFields[id])el.value=st.resumeFields[id];});
+            ['rv_name','rv_degree_short','rv_email','rv_phone','rv_location','rv_linkedin','rv_github','rv_leetcode',
+             'rv_summary','rv_prog_langs','rv_frameworks','rv_databases','rv_tools','rv_softskills','rv_interests']
+            .forEach(id=>{const el=document.getElementById(id);if(el&&st.resumeFields[id])el.value=st.resumeFields[id];});
         }
         if(!resumeEduEntries.length)     addResumeEntry('edu',true);
         if(!resumeProjectEntries.length) addResumeEntry('project',true);
+        if(!resumeExpEntries.length)     addResumeEntry('exp',true);
+        if(!resumeAchEntries.length)     addResumeEntry('ach',true);
         if(!resumeCertEntries.length)    addResumeEntry('cert',true);
         renderResumeEntries();
         updatePreview();
     }
 
-    function toggleAccordion(btn){const body=btn.nextElementSibling;const arrow=btn.querySelector('.accordion-arrow');const open=body.classList.contains('open');body.classList.toggle('open',!open);if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';}
+    function toggleAccordion(btn){
+        const body=btn.nextElementSibling;
+        const arrow=btn.querySelector('.accordion-arrow');
+        const open=body.classList.contains('open');
+        body.classList.toggle('open',!open);
+        if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+    }
 
     function addResumeEntry(type,silent=false){
         const id=Date.now()+Math.random();
         if(type==='edu')     resumeEduEntries.push({id,institution:'',degree:'',branch:'',year:'',cgpa:''});
-        if(type==='project') resumeProjectEntries.push({id,title:'',tech:'',desc:''});
+        if(type==='project') resumeProjectEntries.push({id,title:'',tech:'',link:'',desc:''});
+        if(type==='exp')     resumeExpEntries.push({id,role:'',org:'',period:'',bullets:''});
+        if(type==='ach')     resumeAchEntries.push({id,title:'',org:'',rank:''});
         if(type==='cert')    resumeCertEntries.push({id,title:'',org:'',year:''});
         if(!silent){renderResumeEntries();updatePreview();}
     }
     function removeResumeEntry(type,id){
         if(type==='edu')     resumeEduEntries=resumeEduEntries.filter(e=>e.id!==id);
         if(type==='project') resumeProjectEntries=resumeProjectEntries.filter(e=>e.id!==id);
+        if(type==='exp')     resumeExpEntries=resumeExpEntries.filter(e=>e.id!==id);
+        if(type==='ach')     resumeAchEntries=resumeAchEntries.filter(e=>e.id!==id);
         if(type==='cert')    resumeCertEntries=resumeCertEntries.filter(e=>e.id!==id);
         renderResumeEntries();updatePreview();
     }
+
     function collectResumeEntries(){
         document.querySelectorAll('#rv_edu_entries .resume-entry').forEach(el=>{const e=resumeEduEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.institution=el.querySelector('[data-f="institution"]')?.value||'';e.degree=el.querySelector('[data-f="degree"]')?.value||'';e.branch=el.querySelector('[data-f="branch"]')?.value||'';e.year=el.querySelector('[data-f="year"]')?.value||'';e.cgpa=el.querySelector('[data-f="cgpa"]')?.value||'';});
-        document.querySelectorAll('#rv_project_entries .resume-entry').forEach(el=>{const e=resumeProjectEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.tech=el.querySelector('[data-f="tech"]')?.value||'';e.desc=el.querySelector('[data-f="desc"]')?.value||'';});
+        document.querySelectorAll('#rv_project_entries .resume-entry').forEach(el=>{const e=resumeProjectEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.tech=el.querySelector('[data-f="tech"]')?.value||'';e.link=el.querySelector('[data-f="link"]')?.value||'';e.desc=el.querySelector('[data-f="desc"]')?.value||'';});
+        document.querySelectorAll('#rv_exp_entries .resume-entry').forEach(el=>{const e=resumeExpEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.role=el.querySelector('[data-f="role"]')?.value||'';e.org=el.querySelector('[data-f="org"]')?.value||'';e.period=el.querySelector('[data-f="period"]')?.value||'';e.bullets=el.querySelector('[data-f="bullets"]')?.value||'';});
+        document.querySelectorAll('#rv_ach_entries .resume-entry').forEach(el=>{const e=resumeAchEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.org=el.querySelector('[data-f="org"]')?.value||'';e.rank=el.querySelector('[data-f="rank"]')?.value||'';});
         document.querySelectorAll('#rv_cert_entries .resume-entry').forEach(el=>{const e=resumeCertEntries.find(x=>String(x.id)===el.dataset.id);if(!e)return;e.title=el.querySelector('[data-f="title"]')?.value||'';e.org=el.querySelector('[data-f="org"]')?.value||'';e.year=el.querySelector('[data-f="year"]')?.value||'';});
     }
+
     function renderResumeEntries(){
+        // Education
         const edu=document.getElementById('rv_edu_entries');
-        if(edu)edu.innerHTML=resumeEduEntries.map((e,i)=>`<div class="resume-entry" data-id="${e.id}"><div class="resume-entry-header"><span class="resume-entry-label">Entry ${i+1}</span>${resumeEduEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('edu',${e.id})">✕ Remove</button>`:''}</div><div class="form-row"><div class="form-group"><input type="text" data-f="institution" placeholder="Institution Name" value="${e.institution}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="degree" placeholder="Degree / Course" value="${e.degree}" oninput="updatePreview()"></div></div><div class="form-row"><div class="form-group"><input type="text" data-f="branch" placeholder="Branch / Specialization" value="${e.branch}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year (e.g. 2022–2024)" value="${e.year}" oninput="updatePreview()"></div></div><div class="form-group"><input type="text" data-f="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa}" oninput="updatePreview()"></div></div>`).join('');
+        if(edu)edu.innerHTML=resumeEduEntries.map((e,i)=>`<div class="resume-entry" data-id="${e.id}">
+            <div class="resume-entry-header"><span class="resume-entry-label">Entry ${i+1}</span>${resumeEduEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('edu',${e.id})">✕ Remove</button>`:''}</div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="institution" placeholder="Institution Name" value="${e.institution}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="degree" placeholder="Degree / Course" value="${e.degree}" oninput="updatePreview()"></div></div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="branch" placeholder="Branch / Specialization" value="${e.branch}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year (e.g. 2022–2024)" value="${e.year}" oninput="updatePreview()"></div></div>
+            <div class="form-group"><input type="text" data-f="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa}" oninput="updatePreview()"></div>
+        </div>`).join('');
+
+        // Projects
         const proj=document.getElementById('rv_project_entries');
-        if(proj)proj.innerHTML=resumeProjectEntries.map((p,i)=>`<div class="resume-entry" data-id="${p.id}"><div class="resume-entry-header"><span class="resume-entry-label">Project ${i+1}</span>${resumeProjectEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('project',${p.id})">✕ Remove</button>`:''}</div><div class="form-group"><input type="text" data-f="title" placeholder="Project Title" value="${p.title}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="tech" placeholder="Technologies Used" value="${p.tech}" oninput="updatePreview()"></div><div class="form-group"><textarea class="resume-textarea" data-f="desc" placeholder="Brief description..." rows="2" oninput="updatePreview()">${p.desc}</textarea></div></div>`).join('');
+        if(proj)proj.innerHTML=resumeProjectEntries.map((p,i)=>`<div class="resume-entry" data-id="${p.id}">
+            <div class="resume-entry-header"><span class="resume-entry-label">Project ${i+1}</span>${resumeProjectEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('project',${p.id})">✕ Remove</button>`:''}</div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="title" placeholder="Project Title" value="${p.title}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="tech" placeholder="Tech Stack (React, Python...)" value="${p.tech}" oninput="updatePreview()"></div></div>
+            <div class="form-group"><input type="text" data-f="link" placeholder="GitHub / Live link (optional)" value="${p.link||''}" oninput="updatePreview()"></div>
+            <div class="form-group"><textarea class="resume-textarea" data-f="desc" placeholder="Bullet points (one per line, start each with •)" rows="3" oninput="updatePreview()">${p.desc}</textarea></div>
+        </div>`).join('');
+
+        // Experience
+        const exp=document.getElementById('rv_exp_entries');
+        if(exp)exp.innerHTML=resumeExpEntries.map((e,i)=>`<div class="resume-entry" data-id="${e.id}">
+            <div class="resume-entry-header"><span class="resume-entry-label">Experience ${i+1}</span>${resumeExpEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('exp',${e.id})">✕ Remove</button>`:''}</div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="role" placeholder="Job Title / Role" value="${e.role}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="org" placeholder="Company / Organization" value="${e.org}" oninput="updatePreview()"></div></div>
+            <div class="form-group"><input type="text" data-f="period" placeholder="Period (e.g. 01/2025 – 06/2025)" value="${e.period}" oninput="updatePreview()"></div>
+            <div class="form-group"><textarea class="resume-textarea" data-f="bullets" placeholder="Bullet points (one per line, start each with •)" rows="3" oninput="updatePreview()">${e.bullets}</textarea></div>
+        </div>`).join('');
+
+        // Achievements
+        const ach=document.getElementById('rv_ach_entries');
+        if(ach)ach.innerHTML=resumeAchEntries.map((a,i)=>`<div class="resume-entry" data-id="${a.id}">
+            <div class="resume-entry-header"><span class="resume-entry-label">Achievement ${i+1}</span>${resumeAchEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('ach',${a.id})">✕ Remove</button>`:''}</div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="rank" placeholder="Position (e.g. 1st Place)" value="${a.rank}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="title" placeholder="Event / Award Title" value="${a.title}" oninput="updatePreview()"></div></div>
+            <div class="form-group"><input type="text" data-f="org" placeholder="Organized by / Venue" value="${a.org}" oninput="updatePreview()"></div>
+        </div>`).join('');
+
+        // Certificates
         const cert=document.getElementById('rv_cert_entries');
-        if(cert)cert.innerHTML=resumeCertEntries.map((c,i)=>`<div class="resume-entry" data-id="${c.id}"><div class="resume-entry-header"><span class="resume-entry-label">Certificate ${i+1}</span>${resumeCertEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('cert',${c.id})">✕ Remove</button>`:''}</div><div class="form-group"><input type="text" data-f="title" placeholder="Certificate Title" value="${c.title}" oninput="updatePreview()"></div><div class="form-row"><div class="form-group"><input type="text" data-f="org" placeholder="Issuing Organization" value="${c.org}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year" value="${c.year}" oninput="updatePreview()"></div></div></div>`).join('');
-        // Seminars readonly
+        if(cert)cert.innerHTML=resumeCertEntries.map((c,i)=>`<div class="resume-entry" data-id="${c.id}">
+            <div class="resume-entry-header"><span class="resume-entry-label">Certificate ${i+1}</span>${resumeCertEntries.length>1?`<button class="entry-remove-btn" onclick="removeResumeEntry('cert',${c.id})">✕ Remove</button>`:''}</div>
+            <div class="form-group"><input type="text" data-f="title" placeholder="Certificate Title" value="${c.title}" oninput="updatePreview()"></div>
+            <div class="form-row"><div class="form-group"><input type="text" data-f="org" placeholder="Issuing Organization" value="${c.org}" oninput="updatePreview()"></div><div class="form-group"><input type="text" data-f="year" placeholder="Year" value="${c.year}" oninput="updatePreview()"></div></div>
+        </div>`).join('');
+
+        // Seminars (readonly)
         const sd=document.getElementById('rv_seminars_display');
         if(sd)sd.innerHTML=seminars.completed.length?seminars.completed.map(s=>`<div class="seminar-readonly-item"><span class="pro-badge">🎓</span><span><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</span></div>`).join(''):'<p class="empty-state-text" style="padding:0.5rem 0;font-size:0.85rem">Complete seminars in the <a href="seminars.html">Seminars tab</a> to auto-populate here.</p>';
     }
+
     function generateFromProfile(){
         const setV=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
         setV('rv_name',profile.name||currentUser?.user_metadata?.full_name||'');
         setV('rv_email',profile.email||currentUser?.email||'');
         setV('rv_phone',profile.phone||'');
         setV('rv_location',profile.location||'');
-        setV('rv_url',profile.url||'');
+        setV('rv_linkedin',profile.linkedin||profile.url||'');
+        setV('rv_github',profile.github||'');
+        setV('rv_leetcode',profile.leetcode||'');
         setV('rv_summary',profile.bio||'');
-        setV('rv_techskills',profile.techskills||'');
+        setV('rv_prog_langs',profile.techskills||'');
+        setV('rv_frameworks',profile.frameworks||'');
+        setV('rv_databases',profile.databases||'');
         setV('rv_tools',profile.tools||'');
         setV('rv_softskills',profile.softskills||'');
-        if(profile.edu.length)      resumeEduEntries=profile.edu.map(e=>({id:Date.now()+Math.random(),...e}));
-        if(profile.projects.length) resumeProjectEntries=profile.projects.map(p=>({id:Date.now()+Math.random(),...p}));
+        if(profile.edu&&profile.edu.length) resumeEduEntries=profile.edu.map(e=>({id:Date.now()+Math.random(),...e}));
+        if(profile.projects&&profile.projects.length) resumeProjectEntries=profile.projects.map(p=>({id:Date.now()+Math.random(),title:p.title||'',tech:p.tech||'',link:'',desc:p.desc||''}));
         if(savedCertificates.length) resumeCertEntries=savedCertificates.map(c=>({id:Date.now()+Math.random(),title:c.title,org:c.org,year:c.year}));
         renderResumeEntries();
         updatePreview();
         showNotif('Resume generated from profile! Fine-tune as needed.');
     }
+
     function v(id){const e=document.getElementById(id);return e?e.value.trim():'';}
-    function sT(id,txt){const e=document.getElementById(id);if(e)e.textContent=txt;}
+
+    function setHdItem(wrapId,contentId,val,isLink){
+        const wrap=document.getElementById(wrapId);
+        const el=document.getElementById(contentId);
+        if(!wrap||!el)return;
+        if(val){wrap.style.display='';el.textContent=val;if(isLink)el.href=val.startsWith('http')?val:'https://'+val;}
+        else{wrap.style.display='none';}
+    }
+
+    function bulletLines(text){
+        if(!text)return '';
+        return text.split('\n').map(l=>{
+            l=l.trim();
+            if(!l)return '';
+            if(l.startsWith('•'))l=l.slice(1).trim();
+            return `<li>${l}</li>`;
+        }).filter(Boolean).join('');
+    }
+
     function updatePreview(){
         collectResumeEntries();
-        sT('prev_name',v('rv_name')||'Your Full Name');
-        const cp=[v('rv_email'),v('rv_phone'),v('rv_location')].filter(Boolean);
-        sT('prev_contact',cp.length?cp.join('  |  '):'email  |  phone  |  location');
-        const urlEl=document.getElementById('prev_url'),urlVal=v('rv_url');
-        if(urlEl){urlEl.textContent=urlVal;urlEl.style.display=urlVal?'block':'none';}
-        const sumSec=document.getElementById('prev_summary_section'),sumVal=v('rv_summary');
-        if(sumSec){sT('prev_summary',sumVal);sumSec.style.display=sumVal?'block':'none';}
+
+        // Header
+        document.getElementById('prev_name').textContent=v('rv_name')||'Your Full Name';
+        setHdItem('prev_degree_short_wrap','prev_degree_short',v('rv_degree_short'),false);
+        setHdItem('prev_location_wrap','prev_location',v('rv_location'),false);
+        setHdItem('prev_phone_wrap','prev_phone',v('rv_phone'),false);
+        setHdItem('prev_email_wrap','prev_email',v('rv_email'),true);
+        setHdItem('prev_linkedin_wrap','prev_linkedin',v('rv_linkedin'),true);
+        setHdItem('prev_github_wrap','prev_github',v('rv_github'),true);
+        setHdItem('prev_leetcode_wrap','prev_leetcode',v('rv_leetcode'),true);
+
+        // Summary
+        const sumVal=v('rv_summary');
+        const sumSec=document.getElementById('prev_summary_section');
+        if(sumSec){document.getElementById('prev_summary').textContent=sumVal;sumSec.style.display=sumVal?'':'none';}
+
+        // Education
         const eb=document.getElementById('prev_edu_body');
-        if(eb){const valid=resumeEduEntries.filter(e=>e.institution||e.degree);eb.innerHTML=valid.length?valid.map(e=>`<div style="margin-bottom:6px"><div class="a4-row-flex"><span class="a4-bold">${e.institution||'—'}</span><span class="a4-right">${e.year||''}</span></div><div class="a4-row-flex"><span class="a4-italic">${[e.degree,e.branch].filter(Boolean).join(', ')||''}</span><span class="a4-right a4-muted">${e.cgpa?'CGPA: '+e.cgpa:''}</span></div></div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in education above</div>';}
-        sT('prev_techskills',v('rv_techskills')||'—');
-        sT('prev_tools',v('rv_tools')||'—');
-        sT('prev_softskills',v('rv_softskills')||'—');
+        if(eb){
+            const valid=resumeEduEntries.filter(e=>e.institution||e.degree);
+            eb.innerHTML=valid.length?valid.map(e=>`
+                <div class="rv-edu-entry">
+                    <div class="rv-row"><span class="rv-edu-inst">${e.institution||'—'}</span><span class="rv-right">${e.year||''}</span></div>
+                    <div class="rv-edu-deg">${[e.degree,e.branch].filter(Boolean).join(', ')||''}</div>
+                    ${e.cgpa?`<div class="rv-edu-meta">CGPA: ${e.cgpa}</div>`:''}
+                </div>`).join(''):'<span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in education above</span>';
+        }
+
+        // Skills
+        const skillsHtml=[
+            ['Programming Languages',v('rv_prog_langs')],
+            ['Frameworks & Libraries',v('rv_frameworks')],
+            ['Databases',v('rv_databases')],
+            ['Developer Tools',v('rv_tools')],
+            ['Soft Skills',v('rv_softskills')]
+        ].filter(([,val])=>val).map(([cat,val])=>`<div class="rv-skill-cat">${cat}</div><div class="rv-skill-val">${val}</div>`).join('');
+        const sb=document.getElementById('prev_skills_body');
+        if(sb)sb.innerHTML=skillsHtml||'<span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in skills above</span>';
+
+        // Projects
         const pb=document.getElementById('prev_projects_body');
-        if(pb){const valid=resumeProjectEntries.filter(p=>p.title);pb.innerHTML=valid.length?valid.map(p=>`<div style="margin-bottom:7px"><div class="a4-row-flex"><span class="a4-bold">${p.title}</span><span class="a4-right a4-muted a4-italic">${p.tech||''}</span></div>${p.desc?`<div class="a4-desc">${p.desc}</div>`:''}</div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in projects above</div>';}
+        if(pb){
+            const valid=resumeProjectEntries.filter(p=>p.title);
+            pb.innerHTML=valid.length?valid.map(p=>`
+                <div class="rv-proj-entry">
+                    <div><span class="rv-proj-title">${p.title}</span>${p.tech?` <span class="rv-proj-tech">(${p.tech})</span>`:''}</div>
+                    ${p.link?`<div class="rv-proj-link">🔗 ${p.link}</div>`:''}
+                    ${p.desc?`<ul class="rv-proj-bullets">${bulletLines(p.desc)}</ul>`:''}
+                </div>`).join(''):'<span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in projects above</span>';
+        }
+
+        // Experience
+        const expValid=resumeExpEntries.filter(e=>e.role||e.org);
+        const expSec=document.getElementById('prev_exp_section');
+        const expBody=document.getElementById('prev_exp_body');
+        if(expSec&&expBody){
+            expSec.style.display=expValid.length?'':'none';
+            expBody.innerHTML=expValid.map(e=>`
+                <div class="rv-exp-entry">
+                    <div class="rv-exp-role">${e.role||''}${e.org?', <em>'+e.org+'</em>':''}</div>
+                    ${e.period?`<div class="rv-exp-meta">${e.period}</div>`:''}
+                    ${e.bullets?`<ul class="rv-exp-bullets">${bulletLines(e.bullets)}</ul>`:''}
+                </div>`).join('');
+        }
+
+        // Achievements
+        const achValid=resumeAchEntries.filter(a=>a.title||a.rank);
+        const achSec=document.getElementById('prev_ach_section');
+        const achBody=document.getElementById('prev_ach_body');
+        if(achSec&&achBody){
+            achSec.style.display=achValid.length?'':'none';
+            achBody.innerHTML=achValid.map(a=>`
+                <div class="rv-ach-entry">
+                    <div class="rv-ach-title">${a.rank?a.rank+' | ':''} ${a.title||''}</div>
+                    ${a.org?`<div class="rv-ach-meta">${a.org}</div>`:''}
+                </div>`).join('');
+        }
+
+        // Certificates
         const cb=document.getElementById('prev_certs_body');
-        if(cb){const valid=resumeCertEntries.filter(c=>c.title);cb.innerHTML=valid.length?valid.map(c=>`<div style="margin-bottom:5px"><div class="a4-row-flex"><span class="a4-bold">${c.title}</span><span class="a4-right a4-muted">${c.year||''}</span></div>${c.org?`<div class="a4-muted a4-italic">${c.org}</div>`:''}</div>`).join(''):'<div class="a4-muted a4-italic" style="font-size:10px">Fill in certificates above</div>';}
-        const sec=document.getElementById('prev_seminars_section'),sbody=document.getElementById('prev_seminars_body');
-        if(sec&&sbody){if(seminars.completed.length){sec.style.display='block';sbody.innerHTML=seminars.completed.map(s=>`<div style="margin-bottom:4px" class="a4-row-flex"><span class="a4-bold">${s.title}</span><span class="a4-right a4-muted">${s.org?s.org+(s.date?', ':''):''}${s.date?new Date(s.date).getFullYear():''}</span></div>`).join('');}else sec.style.display='none';}
-        // Persist resume fields
+        if(cb){
+            const valid=resumeCertEntries.filter(c=>c.title);
+            cb.innerHTML=valid.length?valid.map(c=>`
+                <div class="rv-list-item"><strong>${c.title}</strong>${c.org?' — '+c.org:''}${c.year?' ('+c.year+')':''}</div>`).join('')
+                :'<span class="rv-muted" style="font-style:italic;font-size:9pt">Fill in certificates above</span>';
+        }
+
+        // Seminars
+        const semSec=document.getElementById('prev_seminars_section');
+        const semBody=document.getElementById('prev_seminars_body');
+        if(semSec&&semBody){
+            semSec.style.display=seminars.completed.length?'':'none';
+            semBody.innerHTML=seminars.completed.map(s=>`<div class="rv-list-item"><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</div>`).join('');
+        }
+
+        // Interests
+        const intVal=v('rv_interests');
+        const intSec=document.getElementById('prev_interests_section');
+        const intBody=document.getElementById('prev_interests_body');
+        if(intSec&&intBody){
+            intSec.style.display=intVal?'':'none';
+            intBody.innerHTML=intVal.split(',').map(i=>i.trim()).filter(Boolean).map(i=>`<div class="rv-list-item">${i}</div>`).join('');
+        }
+
+        // Persist
         const rf={};
-        ['rv_name','rv_email','rv_phone','rv_location','rv_url','rv_summary','rv_techskills','rv_tools','rv_softskills'].forEach(id=>rf[id]=v(id));
-        saveState({resumeEduEntries,resumeProjectEntries,resumeCertEntries,resumeFields:rf});
+        ['rv_name','rv_degree_short','rv_email','rv_phone','rv_location','rv_linkedin','rv_github','rv_leetcode',
+         'rv_summary','rv_prog_langs','rv_frameworks','rv_databases','rv_tools','rv_softskills','rv_interests']
+        .forEach(id=>rf[id]=v(id));
+        saveState({resumeEduEntries,resumeProjectEntries,resumeExpEntries,resumeAchEntries,resumeCertEntries,resumeFields:rf});
     }
+
     function exportPDF(){
         const preview=document.getElementById('a4Preview');
         if(!preview){showNotif('Nothing to export.','error');return;}
+
+        // Collect all inline styles from the page's <style> tags
+        const allStyles=Array.from(document.styleSheets).map(ss=>{
+            try{return Array.from(ss.cssRules).map(r=>r.cssText).join('\n');}catch(e){return '';}
+        }).join('\n');
+
         const w=window.open('','_blank');
-        w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resume</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Times New Roman',serif;font-size:11px;color:#111}@page{size:A4;margin:0}.a4-paper{width:210mm;min-height:297mm;padding:16mm 18mm;background:white}</style><link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"></head><body>`+preview.outerHTML+`</body></html>`);
+        w.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Resume</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:white;}
+@media print{
+    @page{size:A4;margin:0;}
+    body{margin:0;}
+    .a4-paper{box-shadow:none!important;page-break-after:always;}
+}
+${allStyles}
+</style>
+</head>
+<body>
+${preview.outerHTML}
+</body>
+</html>`);
         w.document.close();
         w.focus();
-        setTimeout(()=>{w.print();},600);
+        setTimeout(function(){w.print();},800);
     }
 
     let _nt;
@@ -317,11 +651,9 @@
     function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
     async function confirmLogout(){
         document.getElementById('logoutToast').classList.remove('show');
-        if(isTestSession()){
-            try{ sessionStorage.removeItem('rb_test_session'); }catch(e){}
-            window.location.href='index.html'; return;
-        }
-        try{ await supabaseClient.auth.signOut(); }catch(e){ alert('Logout failed.'); }
+        var result = await rbAuth.logout();
+        if(result.error){ alert('Logout failed.'); return; }
+        window.location.href='index.html';
     }
     </script>
 </body>

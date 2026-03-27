@@ -8,9 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="firebase-auth.js"></script>
+    <script src="rb-auth.js"></script>
 </head>
 <body>
 
@@ -89,23 +87,86 @@
         renderSidebar();
         document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
         const st=getState();
-        if(st.managedFiles) managedFiles=st.managedFiles;
-        renderFileTable();
+        // Load files from server
+        loadFilesFromServer();
     }
 
-    function handleFMUpload(e){
+    async function loadFilesFromServer(){
+        const tbody=document.getElementById('fileTableBody');
+        tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1rem;color:#888">Loading...</td></tr>';
+        try{
+            const data=await rbAuth.listFiles();
+            managedFiles=data.files||[];
+            renderFileTable();
+        }catch(e){
+            tbody.innerHTML='<tr class="file-table-empty"><td colspan="4">Could not load files from server.</td></tr>';
+        }
+    }
+    async function handleFMUpload(e){
         const file=e.target.files[0];if(!file)return;
-        managedFiles.push({id:Date.now(),name:file.name,type:file.type||'Unknown',date:new Date().toLocaleDateString()});
-        saveState({managedFiles});
-        renderFileTable();e.target.value='';
+        const btn=document.querySelector('.btn.btn-dark[onclick*="fmFileInput"]');
+        if(btn){btn.disabled=true;btn.textContent='Uploading...';}
+        try{
+            const result=await rbAuth.uploadFile(file,function(pct){
+                if(btn)btn.textContent='Uploading '+Math.round(pct*100)+'%';
+            });
+            if(result.error){showNotif('Upload failed: '+result.error,'error');}
+            else{showNotif('File uploaded successfully!');loadFilesFromServer();}
+        }catch(err){
+            showNotif('Upload error: '+err.message,'error');
+        }
+        if(btn){btn.disabled=false;btn.textContent='⬆ Upload File';}
+        e.target.value='';
     }
     function renderFileTable(){
         const tbody=document.getElementById('fileTableBody');
-        tbody.innerHTML=managedFiles.length
-            ?managedFiles.map(f=>`<tr><td class="file-name-cell"><span class="file-icon">📎</span>${f.name}</td><td><span class="file-type-badge">${f.type.split('/').pop().toUpperCase()}</span></td><td>${f.date}</td><td><div class="file-actions"><button class="file-action-btn file-action-delete" onclick="deleteFile(${f.id})">Delete</button></div></td></tr>`).join('')
-            :'<tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>';
+        if(!managedFiles.length){
+            tbody.innerHTML='<tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>';
+            return;
+        }
+        tbody.innerHTML=managedFiles.map(f=>{
+            const ext=(f.original_name||f.name||'').split('.').pop().toUpperCase()||'FILE';
+            const size=f.file_size?formatSize(f.file_size):'—';
+            const date=f.created_at?new Date(f.created_at).toLocaleDateString():f.date||'';
+            const name=f.original_name||f.name||'untitled';
+            return `<tr>
+              <td class="file-name-cell"><span class="file-icon">📎</span>${name}</td>
+              <td><span class="file-type-badge">${ext}</span></td>
+              <td>${date} ${size?'· '+size:''}</td>
+              <td><div class="file-actions">
+                <button class="file-action-btn" onclick="downloadFile(${f.id})">Download</button>
+                <button class="file-action-btn file-action-delete" onclick="deleteFile(${f.id})">Delete</button>
+              </div></td>
+            </tr>`;
+        }).join('');
     }
-    function deleteFile(id){managedFiles=managedFiles.filter(f=>f.id!==id);saveState({managedFiles});renderFileTable();}
+    function formatSize(bytes){
+        if(bytes>=1048576)return(bytes/1048576).toFixed(1)+' MB';
+        if(bytes>=1024)return(bytes/1024).toFixed(0)+' KB';
+        return bytes+' B';
+    }
+    async function deleteFile(id){
+        if(!confirm('Delete this file?'))return;
+        const result=await rbAuth.deleteFile(id);
+        if(result.error){showNotif('Delete failed: '+result.error,'error');return;}
+        showNotif('File deleted.');
+        loadFilesFromServer();
+    }
+    function downloadFile(id){
+        const url=rbAuth.downloadFileUrl(id);
+        // Fetch with auth header and trigger browser download
+        const token=sessionStorage.getItem('rb_access')||'';
+        fetch(url,{headers:{Authorization:'Bearer '+token}})
+            .then(r=>r.ok?r.blob():Promise.reject('Download failed'))
+            .then(blob=>{
+                const a=document.createElement('a');
+                a.href=URL.createObjectURL(blob);
+                // Try to get filename from managedFiles
+                const f=managedFiles.find(x=>x.id===id);
+                a.download=f?f.original_name:'download';
+                a.click();URL.revokeObjectURL(a.href);
+            }).catch(e=>showNotif('Download failed','error'));
+    }
 
     let _nt;
     function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}

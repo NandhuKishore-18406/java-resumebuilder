@@ -8,9 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="firebase-auth.js"></script>
+    <script src="rb-auth.js"></script>
     <style>
         .test-login-banner {
             background: #fff8e1;
@@ -162,9 +160,15 @@
         var password=document.getElementById('loginPassword').value;
         var btn=document.getElementById('loginSubmitBtn');
         btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Logging in...';
-        var result=await rbAuth.loginWithEmail(email,password);
-        if(result.error){showError('loginError',result.error.message);btn.disabled=false;btn.textContent='login';}
-        else{window.location.href='dashboard.html';}
+        try {
+            var result=await rbAuth.loginWithEmail(email,password);
+            if(result.error){showError('loginError',result.error.message);}
+            else{window.location.href='dashboard.html';}
+        } catch(err) {
+            showError('loginError','An unexpected error occurred. Please try again.');
+        } finally {
+            btn.disabled=false; btn.textContent='login';
+        }
     }
     async function handleSignup(e){
         e.preventDefault(); clearMessages();
@@ -175,25 +179,43 @@
         var cpw=document.getElementById('signupConfirmPassword').value;
         var btn=document.getElementById('signupSubmitBtn');
         if(pw!==cpw){showError('signupError','Passwords do not match');return;}
+        if(!email || !pw || !fn || !ln){showError('signupError','Please fill in all required fields.');return;}
         btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Creating account...';
-        var result=await rbAuth.signupWithEmail(email,pw,fn,ln);
-        if(result.error){showError('signupError',result.error.message);}
-        else{showSuccess('signupSuccess','Account created! Redirecting...');document.getElementById('signupForm').reset();setTimeout(function(){window.location.href='dashboard.html';},1500);}
-        btn.disabled=false; btn.textContent='Sign up';
+        try {
+            var result=await rbAuth.signupWithEmail(email,pw,fn,ln);
+            if(result.error){showError('signupError',result.error.message);}
+            else{showSuccess('signupSuccess','Account created! Redirecting...');document.getElementById('signupForm').reset();setTimeout(function(){window.location.href='dashboard.html';},1500);}
+        } catch(err) {
+            showError('signupError','An unexpected error occurred. Please try again.');
+        } finally {
+            btn.disabled=false; btn.textContent='Sign up';
+        }
     }
     async function handleGoogleLogin(){
         var btn=document.getElementById('googleLoginBtn');
         btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Signing in...';
-        var result=await rbAuth.loginWithGoogle();
-        if(result.error){showError('loginError',result.error.message);btn.disabled=false;btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Login with google</span>';}
-        else{window.location.href='dashboard.html';}
+        try {
+            var result=await rbAuth.loginWithGoogle();
+            if(result.error){showError('loginError',result.error.message);}
+            else{window.location.href='dashboard.html';}
+        } catch(err) {
+            showError('loginError','An unexpected error occurred. Please try again.');
+        } finally {
+            btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Login with google</span>';
+        }
     }
     async function handleGoogleSignup(){
         var btn=document.getElementById('googleSignupBtn');
         btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Signing in...';
-        var result=await rbAuth.loginWithGoogle();
-        if(result.error){showError('signupError',result.error.message);btn.disabled=false;btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Continue with google</span>';}
-        else{window.location.href='dashboard.html';}
+        try {
+            var result=await rbAuth.loginWithGoogle();
+            if(result.error){showError('signupError',result.error.message);}
+            else{window.location.href='dashboard.html';}
+        } catch(err) {
+            showError('signupError','An unexpected error occurred. Please try again.');
+        } finally {
+            btn.disabled=false; btn.innerHTML='<span style="font-weight:700;font-size:1.2rem;">G</span><span>Continue with google</span>';
+        }
     }
     </script>
 </body>

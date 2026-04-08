@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="rb-auth.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">File Manager</span>
+            </div>
+
+            <div class="tab-content active" id="tab-file-manager">
+                <div class="tab-inner">
+                    <h2 class="tab-heading">File Manager</h2>
+                    <p class="tab-subtext">All your uploaded files in one place.</p>
+                    <div class="file-manager-toolbar">
+                        <button class="btn btn-dark" onclick="document.getElementById('fmFileInput').click()">⬆ Upload File</button>
+                        <input type="file" id="fmFileInput" onchange="handleFMUpload(event)">
+                    </div>
+                    <div class="file-table-wrapper">
+                        <table class="file-table">
+                            <thead><tr><th>File Name</th><th>Type</th><th>Date Added</th><th>Actions</th></tr></thead>
+                            <tbody id="fileTableBody">
+                                <tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    let currentUser=null;
+
+    // ── FIREBASE AUTH GUARD ──
+    (async function(){
+        var user = await rbAuth.getCurrentUser();
+        if(!user){ window.location.href='index.html'; return; }
+        currentUser = user;
+        init();
+    })();
+    rbAuth.onAuthChange(function(user){
+        if(!user && !rbAuth.isTestSession()) window.location.href='index.html';
+    });
+    let managedFiles=[];
+
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='file-manager'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        const st=getState();
+        // Load files from server
+        loadFilesFromServer();
+    }
+
+    async function loadFilesFromServer(){
+        const tbody=document.getElementById('fileTableBody');
+        tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1rem;color:#888">Loading...</td></tr>';
+        try{
+            const data=await rbAuth.listFiles();
+            managedFiles=data.files||[];
+            renderFileTable();
+        }catch(e){
+            tbody.innerHTML='<tr class="file-table-empty"><td colspan="4">Could not load files from server.</td></tr>';
+        }
+    }
+    async function handleFMUpload(e){
+        const file=e.target.files[0];if(!file)return;
+        const btn=document.querySelector('.btn.btn-dark[onclick*="fmFileInput"]');
+        if(btn){btn.disabled=true;btn.textContent='Uploading...';}
+        try{
+            const result=await rbAuth.uploadFile(file,function(pct){
+                if(btn)btn.textContent='Uploading '+Math.round(pct*100)+'%';
+            });
+            if(result.error){showNotif('Upload failed: '+result.error,'error');}
+            else{showNotif('File uploaded successfully!');loadFilesFromServer();}
+        }catch(err){
+            showNotif('Upload error: '+err.message,'error');
+        }
+        if(btn){btn.disabled=false;btn.textContent='⬆ Upload File';}
+        e.target.value='';
+    }
+    function renderFileTable(){
+        const tbody=document.getElementById('fileTableBody');
+        if(!managedFiles.length){
+            tbody.innerHTML='<tr class="file-table-empty"><td colspan="4">No files uploaded yet.</td></tr>';
+            return;
+        }
+        tbody.innerHTML=managedFiles.map(f=>{
+            const ext=(f.original_name||f.name||'').split('.').pop().toUpperCase()||'FILE';
+            const size=f.file_size?formatSize(f.file_size):'—';
+            const date=f.created_at?new Date(f.created_at).toLocaleDateString():f.date||'';
+            const name=f.original_name||f.name||'untitled';
+            return `<tr>
+              <td class="file-name-cell"><span class="file-icon">📎</span>${name}</td>
+              <td><span class="file-type-badge">${ext}</span></td>
+              <td>${date} ${size?'· '+size:''}</td>
+              <td><div class="file-actions">
+                <button class="file-action-btn" onclick="downloadFile(${f.id})">Download</button>
+                <button class="file-action-btn file-action-delete" onclick="deleteFile(${f.id})">Delete</button>
+              </div></td>
+            </tr>`;
+        }).join('');
+    }
+    function formatSize(bytes){
+        if(bytes>=1048576)return(bytes/1048576).toFixed(1)+' MB';
+        if(bytes>=1024)return(bytes/1024).toFixed(0)+' KB';
+        return bytes+' B';
+    }
+    async function deleteFile(id){
+        if(!confirm('Delete this file?'))return;
+        const result=await rbAuth.deleteFile(id);
+        if(result.error){showNotif('Delete failed: '+result.error,'error');return;}
+        showNotif('File deleted.');
+        loadFilesFromServer();
+    }
+    function downloadFile(id){
+        const url=rbAuth.downloadFileUrl(id);
+        // Fetch with auth header and trigger browser download
+        const token=sessionStorage.getItem('rb_access')||'';
+        fetch(url,{headers:{Authorization:'Bearer '+token}})
+            .then(r=>r.ok?r.blob():Promise.reject('Download failed'))
+            .then(blob=>{
+                const a=document.createElement('a');
+                a.href=URL.createObjectURL(blob);
+                // Try to get filename from managedFiles
+                const f=managedFiles.find(x=>x.id===id);
+                a.download=f?f.original_name:'download';
+                a.click();URL.revokeObjectURL(a.href);
+            }).catch(e=>showNotif('Download failed','error'));
+    }
+
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        var result = await rbAuth.logout();
+        if(result.error){ alert('Logout failed.'); return; }
+        window.location.href='index.html';
+    }
+    </script>
+</body>
+</html>

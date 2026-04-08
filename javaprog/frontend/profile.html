@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="rb-auth.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo"></div>
+            <div class="logo-text"><h1>Resume builder</h1><p>auto update and generation</p></div>
+        </div>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+
+    <div class="logged-in-section active" id="loggedInSection">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="app-main">
+            <div class="app-topbar">
+                <button class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></button>
+                <span class="app-topbar-title">Profile</span>
+            </div>
+
+            <!-- ─── PROFILE TAB ─── -->
+            <div class="tab-content active" id="tab-profile">
+                <div class="tab-inner">
+
+                    <div class="profile-hero-card">
+                        <div class="profile-avatar" id="profileAvatar">?</div>
+                        <div class="profile-hero-info">
+                            <div class="profile-display-name" id="profileDisplayName">Your Name</div>
+                            <div class="profile-display-email" id="profileDisplayEmail"></div>
+                            <div class="profile-display-meta" id="profileDisplayMeta"></div>
+                        </div>
+                        <button class="btn btn-dark profile-edit-btn" id="profileEditToggle" onclick="toggleProfileEdit()">✏ Edit Profile</button>
+                    </div>
+
+                    <!-- Edit form -->
+                    <div class="profile-edit-form" id="profileEditForm">
+                        <div class="profile-section-label">Basic Info</div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="field-label">Full Name</label><input type="text" id="pf_name" placeholder="Full Name" oninput="liveUpdateProfile()"></div>
+                            <div class="form-group"><label class="field-label">Phone</label><input type="tel" id="pf_phone" placeholder="Phone Number" oninput="liveUpdateProfile()"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="field-label">Location</label><input type="text" id="pf_location" placeholder="City, Country" oninput="liveUpdateProfile()"></div>
+                            <div class="form-group"><label class="field-label">LinkedIn / Portfolio URL</label><input type="url" id="pf_url" placeholder="https://..." oninput="liveUpdateProfile()"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="field-label">Bio / Summary</label>
+                            <textarea class="resume-textarea" id="pf_bio" placeholder="A short professional summary..." rows="3" oninput="liveUpdateProfile()"></textarea>
+                        </div>
+
+                        <div class="profile-section-label">Education <button class="add-entry-btn" onclick="addProfileEntry('edu')">+ Add</button></div>
+                        <div id="pf_edu_list"></div>
+
+                        <div class="profile-section-label">Skills</div>
+                        <div class="form-group">
+                            <label class="field-label">Technical Skills <span class="field-hint-inline">(comma separated)</span></label>
+                            <input type="text" id="pf_techskills" placeholder="Python, React, SQL..." oninput="liveUpdateProfile()">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="field-label">Tools &amp; Technologies</label><input type="text" id="pf_tools" placeholder="Git, Docker..." oninput="liveUpdateProfile()"></div>
+                            <div class="form-group"><label class="field-label">Soft Skills</label><input type="text" id="pf_softskills" placeholder="Leadership..." oninput="liveUpdateProfile()"></div>
+                        </div>
+
+                        <div class="profile-section-label">Projects <button class="add-entry-btn" onclick="addProfileEntry('project')">+ Add</button></div>
+                        <div id="pf_project_list"></div>
+
+                        <div class="profile-section-label">Certificates <span class="profile-section-hint">managed from <a href="certificates.html">Certificates tab</a></span></div>
+                        <div id="pf_certs_readonly"></div>
+
+                        <div class="profile-section-label">Completed Seminars <span class="profile-section-hint">auto-synced from <a href="seminars.html">Seminars tab</a></span></div>
+                        <div id="pf_seminars_readonly"></div>
+
+                        <div class="profile-save-bar">
+                            <button class="btn btn-dark" onclick="saveProfile()">💾 Save Profile</button>
+                        </div>
+                    </div>
+
+                    <!-- Profile view (read-only) -->
+                    <div id="profileView">
+                        <div id="pv_bio_section" class="pv-section" style="display:none"><div class="pv-section-title">Summary</div><div id="pv_bio" class="pv-text"></div></div>
+                        <div id="pv_edu_section" class="pv-section" style="display:none"><div class="pv-section-title">Education</div><div id="pv_edu_list" class="pv-list"></div></div>
+                        <div id="pv_skills_section" class="pv-section" style="display:none"><div class="pv-section-title">Skills</div><div id="pv_skills" class="pv-text"></div></div>
+                        <div id="pv_project_section" class="pv-section" style="display:none"><div class="pv-section-title">Projects</div><div id="pv_project_list" class="pv-list"></div></div>
+                        <div id="pv_certs_section" class="pv-section" style="display:none"><div class="pv-section-title">Certificates</div><div id="pv_certs_list" class="pv-list"></div></div>
+                        <div id="pv_seminars_section" class="pv-section" style="display:none"><div class="pv-section-title">Completed Seminars</div><div id="pv_seminars_list" class="pv-list"></div></div>
+                        <p id="pv_empty" class="empty-state-text">No profile info yet. Click <strong>Edit Profile</strong> to get started.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <div class="toast-message">Are you sure you want to logout?</div>
+        <div class="toast-actions">
+            <button class="btn-confirm" onclick="confirmLogout()">Confirm</button>
+            <button class="btn-toast-cancel" onclick="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+    <div class="notif-toast" id="notifToast"></div>
+
+    <script>
+    let currentUser=null;
+
+    // ── FIREBASE AUTH GUARD ──
+    (async function(){
+        var user = await rbAuth.getCurrentUser();
+        if(!user){ window.location.href='index.html'; return; }
+        currentUser = user;
+        init();
+    })();
+    rbAuth.onAuthChange(function(user){
+        if(!user && !rbAuth.isTestSession()) window.location.href='index.html';
+    });
+    let profile={name:'',email:'',phone:'',location:'',url:'',bio:'',techskills:'',tools:'',softskills:'',edu:[],projects:[]};
+    let savedCertificates=[];
+    let seminars={completed:[],queue:[]};
+    let profileEditing=false;
+
+    // ── STATE ──
+    function getState(){try{const r=sessionStorage.getItem('rb_state');return r?JSON.parse(r):{};}catch(e){return {};}}
+    function saveState(patch){try{const e=getState();sessionStorage.setItem('rb_state',JSON.stringify({...e,...patch}));}catch(e){}}
+
+    // ── SIDEBAR ──
+    function renderSidebar(){
+        const pages=[{id:'dashboard',icon:'⊞',label:'Dashboard',href:'dashboard.html'},{id:'profile',icon:'👤',label:'Profile',href:'profile.html'},{id:'resume-builder',icon:'📄',label:'Resume Builder',href:'resume-builder.html'},{id:'certificates',icon:'🏅',label:'Certificates',href:'certificates.html'},{id:'seminars',icon:'🎓',label:'Seminars',href:'seminars.html'},{id:'file-manager',icon:'🗂',label:'File Manager',href:'file-manager.html'}];
+        document.getElementById('appSidebar').innerHTML=`<div class="sidebar-header"><button class="sidebar-close-btn" onclick="closeSidebar()">✕</button></div><nav class="sidebar-nav">${pages.map(p=>`<a class="sidebar-item${p.id==='profile'?' active':''}" href="${p.href}" style="text-decoration:none"><span class="sidebar-icon">${p.icon}</span><span class="sidebar-label">${p.label}</span></a>`).join('')}</nav><div class="sidebar-footer"><button class="sidebar-item sidebar-logout" onclick="showLogoutToast()"><span class="sidebar-icon">⇤</span><span class="sidebar-label">Logout</span></button></div>`;
+    }
+    function openSidebar(){document.getElementById('appSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');}
+    function closeSidebar(){document.getElementById('appSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ── AUTH ──
+    function init(){
+        renderSidebar();
+        document.getElementById('headerActions').innerHTML=`<span class="user-email">${currentUser?.email||''}</span><button class="btn btn-dark" onclick="showLogoutToast()">Logout</button>`;
+        // Load state
+        const st=getState();
+        if(st.profile) profile={...profile,...st.profile};
+        if(st.savedCertificates) savedCertificates=st.savedCertificates;
+        if(st.seminars) seminars=st.seminars;
+        if(currentUser?.email) profile.email=currentUser.email;
+        if(currentUser?.user_metadata?.full_name) profile.name=profile.name||currentUser.user_metadata.full_name;
+        renderProfileHero();
+        renderProfileReadonlySections();
+        renderProfileView();
+    }
+
+    function toggleProfileEdit(){
+        profileEditing=!profileEditing;
+        const form=document.getElementById('profileEditForm');
+        const view=document.getElementById('profileView');
+        const btn=document.getElementById('profileEditToggle');
+        if(profileEditing){form.classList.add('show');view.style.display='none';btn.textContent='✕ Close Edit';populateProfileForm();}
+        else{form.classList.remove('show');view.style.display='block';btn.textContent='✏ Edit Profile';renderProfileView();}
+    }
+    function populateProfileForm(){
+        ['name','phone','location','url','bio','techskills','tools','softskills'].forEach(f=>{const el=document.getElementById('pf_'+f);if(el)el.value=profile[f]||'';});
+        renderProfileEduList();renderProfileProjectList();renderProfileReadonlySections();
+    }
+    function liveUpdateProfile(){
+        ['name','phone','location','url','bio','techskills','tools','softskills'].forEach(f=>{const el=document.getElementById('pf_'+f);if(el)profile[f]=el.value;});
+        renderProfileHero();
+    }
+    function saveProfile(){
+        liveUpdateProfile();
+        profile.edu=[];
+        document.querySelectorAll('#pf_edu_list .profile-entry').forEach(el=>{profile.edu.push({institution:el.querySelector('[data-field="institution"]')?.value||'',degree:el.querySelector('[data-field="degree"]')?.value||'',branch:el.querySelector('[data-field="branch"]')?.value||'',year:el.querySelector('[data-field="year"]')?.value||'',cgpa:el.querySelector('[data-field="cgpa"]')?.value||''});});
+        profile.projects=[];
+        document.querySelectorAll('#pf_project_list .profile-entry').forEach(el=>{profile.projects.push({title:el.querySelector('[data-field="title"]')?.value||'',tech:el.querySelector('[data-field="tech"]')?.value||'',desc:el.querySelector('[data-field="desc"]')?.value||''});});
+        saveState({profile});
+        showNotif('Profile saved successfully!');
+        toggleProfileEdit();
+    }
+    function renderProfileHero(){
+        const name=profile.name||currentUser?.user_metadata?.full_name||'Your Name';
+        const email=profile.email||currentUser?.email||'';
+        document.getElementById('profileAvatar').textContent=name.charAt(0).toUpperCase()||'?';
+        document.getElementById('profileDisplayName').textContent=name;
+        document.getElementById('profileDisplayEmail').textContent=email;
+        document.getElementById('profileDisplayMeta').textContent=[profile.phone,profile.location].filter(Boolean).join(' · ');
+    }
+    function addProfileEntry(type){
+        if(type==='edu')profile.edu.push({institution:'',degree:'',branch:'',year:'',cgpa:''});
+        else profile.projects.push({title:'',tech:'',desc:''});
+        type==='edu'?renderProfileEduList():renderProfileProjectList();
+    }
+    function removeProfileEntry(type,idx){
+        if(type==='edu'){profile.edu.splice(idx,1);renderProfileEduList();}
+        else{profile.projects.splice(idx,1);renderProfileProjectList();}
+    }
+    function renderProfileEduList(){
+        const c=document.getElementById('pf_edu_list');
+        if(!profile.edu.length){c.innerHTML='<p class="empty-state-text" style="padding:0.5rem 0">No education entries. Click + Add above.</p>';return;}
+        c.innerHTML=profile.edu.map((e,i)=>`<div class="profile-entry" data-idx="${i}"><div class="profile-entry-header"><span class="profile-entry-num">Education ${i+1}</span><button class="entry-remove-btn" onclick="removeProfileEntry('edu',${i})">✕ Remove</button></div><div class="form-row"><div class="form-group"><input type="text" data-field="institution" placeholder="Institution Name" value="${e.institution||''}"></div><div class="form-group"><input type="text" data-field="degree" placeholder="Degree / Course" value="${e.degree||''}"></div></div><div class="form-row"><div class="form-group"><input type="text" data-field="branch" placeholder="Branch / Specialization" value="${e.branch||''}"></div><div class="form-group"><input type="text" data-field="year" placeholder="Year (e.g. 2022–2024)" value="${e.year||''}"></div></div><div class="form-group"><input type="text" data-field="cgpa" placeholder="CGPA / Percentage" value="${e.cgpa||''}"></div></div>`).join('');
+    }
+    function renderProfileProjectList(){
+        const c=document.getElementById('pf_project_list');
+        if(!profile.projects.length){c.innerHTML='<p class="empty-state-text" style="padding:0.5rem 0">No projects. Click + Add above.</p>';return;}
+        c.innerHTML=profile.projects.map((p,i)=>`<div class="profile-entry" data-idx="${i}"><div class="profile-entry-header"><span class="profile-entry-num">Project ${i+1}</span><button class="entry-remove-btn" onclick="removeProfileEntry('project',${i})">✕ Remove</button></div><div class="form-group"><input type="text" data-field="title" placeholder="Project Title" value="${p.title||''}"></div><div class="form-group"><input type="text" data-field="tech" placeholder="Technologies Used" value="${p.tech||''}"></div><div class="form-group"><textarea class="resume-textarea" data-field="desc" placeholder="Description..." rows="2">${p.desc||''}</textarea></div></div>`).join('');
+    }
+    function renderProfileReadonlySections(){
+        const certsEl=document.getElementById('pf_certs_readonly');
+        if(certsEl)certsEl.innerHTML=savedCertificates.length?savedCertificates.map(c=>`<div class="profile-readonly-item"><span class="pro-badge">🏅</span><span><strong>${c.title}</strong>${c.org?' — '+c.org:''}${c.year?', '+c.year:''}</span></div>`).join(''):'<p class="empty-state-text" style="padding:0.5rem 0">No certificates saved yet.</p>';
+        const semEl=document.getElementById('pf_seminars_readonly');
+        if(semEl)semEl.innerHTML=seminars.completed.length?seminars.completed.map(s=>`<div class="profile-readonly-item"><span class="pro-badge">🎓</span><span><strong>${s.title}</strong>${s.org?' — '+s.org:''}${s.date?', '+new Date(s.date).getFullYear():''}</span></div>`).join(''):'<p class="empty-state-text" style="padding:0.5rem 0">No completed seminars yet.</p>';
+    }
+    function renderProfileView(){
+        let has=false;
+        const show=(id,val)=>{const el=document.getElementById(id);if(el)el.style.display=val?'block':'none';};
+        if(profile.bio){document.getElementById('pv_bio').textContent=profile.bio;show('pv_bio_section',true);has=true;}else show('pv_bio_section',false);
+        if(profile.edu.length){document.getElementById('pv_edu_list').innerHTML=profile.edu.map(e=>`<div class="pv-entry"><strong>${e.institution||'—'}</strong><span class="pv-meta">${[e.degree,e.branch].filter(Boolean).join(', ')}${e.year?' · '+e.year:''}${e.cgpa?' · '+e.cgpa:''}</span></div>`).join('');show('pv_edu_section',true);has=true;}else show('pv_edu_section',false);
+        const skills=[profile.techskills,profile.tools,profile.softskills].filter(Boolean).join(' · ');
+        if(skills){document.getElementById('pv_skills').textContent=skills;show('pv_skills_section',true);has=true;}else show('pv_skills_section',false);
+        if(profile.projects.length){document.getElementById('pv_project_list').innerHTML=profile.projects.map(p=>`<div class="pv-entry"><strong>${p.title||'—'}</strong><span class="pv-meta">${p.tech?p.tech+' — ':''}${p.desc||''}</span></div>`).join('');show('pv_project_section',true);has=true;}else show('pv_project_section',false);
+        if(savedCertificates.length){document.getElementById('pv_certs_list').innerHTML=savedCertificates.map(c=>`<div class="pv-entry"><strong>${c.title}</strong><span class="pv-meta">${c.org||''}${c.year?' · '+c.year:''}</span></div>`).join('');show('pv_certs_section',true);has=true;}else show('pv_certs_section',false);
+        if(seminars.completed.length){document.getElementById('pv_seminars_list').innerHTML=seminars.completed.map(s=>`<div class="pv-entry"><strong>${s.title}</strong><span class="pv-meta">${s.org||''}${s.date?' · '+new Date(s.date).getFullYear():''}</span></div>`).join('');show('pv_seminars_section',true);has=true;}else show('pv_seminars_section',false);
+        document.getElementById('pv_empty').style.display=has?'none':'block';
+    }
+
+    // ── TOAST ──
+    let _nt;
+    function showNotif(msg,type='success'){const t=document.getElementById('notifToast');t.textContent=msg;t.className='notif-toast show '+type;clearTimeout(_nt);_nt=setTimeout(()=>t.classList.remove('show'),3500);}
+    function showLogoutToast(){document.getElementById('logoutToast').classList.add('show');}
+    function cancelLogout(){document.getElementById('logoutToast').classList.remove('show');}
+    async function confirmLogout(){
+        document.getElementById('logoutToast').classList.remove('show');
+        var result = await rbAuth.logout();
+        if(result.error){ alert('Logout failed.'); return; }
+        window.location.href='index.html';
+    }
+    </script>
+</body>
+</html>

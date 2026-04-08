@@ -1,1 +1,5 @@
+# Ignore frontend files from language stats
 javaprog/frontend/** linguist-vendored
+
+# Force Java detection
+*.java linguist-language=Java

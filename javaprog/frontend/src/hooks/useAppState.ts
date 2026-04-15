@@ -4,37 +4,37 @@ import { useState, useEffect, useCallback } from "react";
 import { getState, saveState, type AppState, type Profile } from "@/lib/storage";
 
 export function useAppState() {
-  const [state, setState] = useState<AppState>(() => getState());
+  const [state, setState] = useState<AppState>({ profile: {}, savedCertificates: [], seminars: { completed: [], queue: [] } });
+  const [loading, setLoading] = useState(true);
 
-  // Rehydrate on mount
   useEffect(() => {
-    setState(getState());
+    getState().then(setState).finally(() => setLoading(false));
   }, []);
 
-  const updateState = useCallback((patch: Partial<AppState>) => {
+  const updateState = useCallback(async (patch: Partial<AppState>) => {
     setState((prev) => {
       const updated = { ...prev, ...patch };
-      saveState(patch);
       return updated;
     });
+    await saveState(patch);
   }, []);
 
-  return { state, updateState };
+  return { state, updateState, loading };
 }
 
 export function useProfile() {
-  const { state, updateState } = useAppState();
-  const [profile, setProfile] = useState<Profile>(() => state.profile);
+  const { state, updateState, loading } = useAppState();
+  const [profile, setProfile] = useState<Profile>(state.profile);
 
   useEffect(() => {
     setProfile(state.profile);
   }, [state.profile]);
 
-  const updateProfile = (patch: Partial<Profile>) => {
+  const updateProfile = async (patch: Partial<Profile>) => {
     const updated = { ...profile, ...patch };
     setProfile(updated);
-    updateState({ profile: updated });
+    await updateState({ profile: updated });
   };
 
-  return { profile, updateProfile };
+  return { profile, updateProfile, loading };
 }

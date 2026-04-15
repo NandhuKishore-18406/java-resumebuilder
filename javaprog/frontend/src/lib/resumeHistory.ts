@@ -1,4 +1,5 @@
 import { type ResumeFields, type ResumeEducationEntry, type ResumeProjectEntry, type ResumeExpEntry, type ResumeAchEntry, type ResumeCertEntry } from "./storage";
+import { api } from "./api";
 
 export type ResumeData = {
   fields: ResumeFields;
@@ -10,52 +11,49 @@ export type ResumeData = {
 };
 
 export type ResumeSnapshot = {
-  id: string;
-  label: string;       // "Version 3" or "Saved Apr 12, 2:30 PM"
-  savedAt: string;     // ISO timestamp
+  id: number;
+  label: string;
+  savedAt: string;
   resumeData: ResumeData;
 };
 
-const HISTORY_KEY = "rb_resume_history";
-const MAX_SNAPSHOTS = 4;
-
-export function getHistory(): ResumeSnapshot[] {
+export async function getHistory(): Promise<ResumeSnapshot[]> {
   try {
-    const raw = sessionStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
+    const history = await api.get<any[]>("/api/resume/history");
+    return history.map((h: any) => ({
+      id: h.id,
+      label: h.label,
+      savedAt: h.savedAt,
+      resumeData: typeof h.resumeData === "string" ? JSON.parse(h.resumeData) : h.resumeData,
+    }));
   } catch {
     return [];
   }
 }
 
-export function saveSnapshot(data: ResumeData): ResumeSnapshot {
-  const history = getHistory();
+export async function saveSnapshot(data: ResumeData): Promise<ResumeSnapshot> {
+  const history = await getHistory();
   const now = new Date();
-  const id = Date.now().toString();
 
-  const snapshot: ResumeSnapshot = {
-    id,
+  const snapshot = await api.post<any>("/api/resume/history", {
     label: `Version ${history.length + 1}`,
     savedAt: now.toISOString(),
-    resumeData: data,
+    resumeData: JSON.stringify(data),
+  });
+
+  return {
+    id: snapshot.id,
+    label: snapshot.label,
+    savedAt: snapshot.savedAt,
+    resumeData: typeof snapshot.resumeData === "string" ? JSON.parse(snapshot.resumeData) : snapshot.resumeData,
   };
-
-  // Add to beginning and trim to max
-  const updated = [snapshot, ...history].slice(0, MAX_SNAPSHOTS);
-  sessionStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-
-  return snapshot;
 }
 
-export function deleteSnapshot(id: string): void {
-  const history = getHistory();
-  const filtered = history.filter((s) => s.id !== id);
-  sessionStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
+export async function deleteSnapshot(id: number): Promise<void> {
+  await api.delete(`/api/resume/history/${id}`);
 }
 
-export function restoreSnapshot(id: string): ResumeData | null {
-  const history = getHistory();
+export function restoreSnapshot(id: number, history: ResumeSnapshot[]): ResumeData | null {
   const snapshot = history.find((s) => s.id === id);
   return snapshot?.resumeData || null;
 }

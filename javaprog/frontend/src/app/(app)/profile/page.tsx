@@ -73,26 +73,27 @@ export default function ProfilePage() {
         return;
       }
     }
-    
-    const currentState = getState();
-    if (currentState.profile) {
-      setProfile(currentState.profile);
-      setTechSkills(currentState.profile.techskills?.split(", ").filter(Boolean) || []);
-      setTools(currentState.profile.tools?.split(", ").filter(Boolean) || []);
-      setSoftSkills(currentState.profile.softskills?.split(", ").filter(Boolean) || []);
-      if (currentState.profile.edu) setEducation(currentState.profile.edu);
-      if (currentState.profile.projects) setProjects(currentState.profile.projects);
-      if (currentState.profile.experience) setExperience(currentState.profile.experience);
-      if (currentState.profile.publications) setPublications(currentState.profile.publications);
-      if (currentState.profile.languages) setLanguages(currentState.profile.languages);
-      if (currentState.profile.awards) setAwards(currentState.profile.awards);
-    }
-    if (currentState.savedCertificates) {
-      setProfile(prev => ({ ...prev, certificatesCount: currentState.savedCertificates.length }));
-    }
-    if (currentState.seminars?.completed) {
-      setProfile(prev => ({ ...prev, seminarsCount: currentState.seminars.completed.length }));
-    }
+
+    getState().then(currentState => {
+      if (currentState.profile) {
+        setProfile(currentState.profile);
+        setTechSkills(currentState.profile.techskills?.split(", ").filter(Boolean) || []);
+        setTools(currentState.profile.tools?.split(", ").filter(Boolean) || []);
+        setSoftSkills(currentState.profile.softskills?.split(", ").filter(Boolean) || []);
+        if (currentState.profile.edu) setEducation(currentState.profile.edu);
+        if (currentState.profile.projects) setProjects(currentState.profile.projects);
+        if (currentState.profile.experience) setExperience(currentState.profile.experience);
+        if (currentState.profile.publications) setPublications(currentState.profile.publications);
+        if (currentState.profile.languages) setLanguages(currentState.profile.languages);
+        if (currentState.profile.awards) setAwards(currentState.profile.awards);
+      }
+      if (currentState.savedCertificates) {
+        setProfile(prev => ({ ...prev, certificatesCount: currentState.savedCertificates.length }));
+      }
+      if (currentState.seminars?.completed) {
+        setProfile(prev => ({ ...prev, seminarsCount: currentState.seminars.completed.length }));
+      }
+    });
   }, [user, router]);
 
   const handleLogout = () => {

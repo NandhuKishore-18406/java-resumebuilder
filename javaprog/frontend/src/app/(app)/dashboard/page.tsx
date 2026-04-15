@@ -3,32 +3,14 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useAppState";
 import Link from "next/link";
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LayoutDashboard, User, FileText, Award, GraduationCap, FolderOpen, Sparkles } from "lucide-react";
-import { api } from "@/lib/api";
-import { toast } from "sonner";
+import { LayoutDashboard, User, FileText, Award, GraduationCap, FolderOpen } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
-  const [isLoadingAi, setIsLoadingAi] = useState(false);
-
-  const handleGetAiFeedback = async () => {
-    setIsLoadingAi(true);
-    try {
-      const response = await api.post<{ feedback: string }>("/api/ai/profile-feedback", profile);
-      setAiFeedback(response.feedback);
-      toast.success("AI feedback generated!");
-    } catch (err) {
-      toast.error("Failed to get AI feedback");
-    } finally {
-      setIsLoadingAi(false);
-    }
-  };
 
   // Time-based greeting
   const hour = new Date().getHours();
@@ -126,37 +108,6 @@ export default function DashboardPage() {
         </Card>
       </Link>
 
-      {/* AI Feedback Card */}
-      <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-base">AI Profile Feedback</CardTitle>
-                <CardDescription>Get personalized suggestions to improve your profile</CardDescription>
-              </div>
-            </div>
-            <Button
-              onClick={handleGetAiFeedback}
-              disabled={isLoadingAi}
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {isLoadingAi ? "Generating..." : "Get AI Feedback"}
-            </Button>
-          </div>
-        </CardHeader>
-        {aiFeedback && (
-          <CardContent>
-            <div className="bg-white/50 rounded-lg p-4 text-sm whitespace-pre-line">
-              {aiFeedback}
-            </div>
-          </CardContent>
-        )}
-      </Card>
 
       {/* How it works */}
       <Card>

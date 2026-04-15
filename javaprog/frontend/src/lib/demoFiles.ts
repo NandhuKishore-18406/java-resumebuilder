@@ -1,45 +1,34 @@
 import { formatSize } from "./utils";
-
-const FILES_KEY = "rb_files";
+import { api } from "./api";
 
 export type DemoFile = {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  addedAt: string;
+  id: number;
+  originalName: string;
+  fileSize: number;
+  mimeType?: string;
+  storedPath?: string;
 };
 
-export function getFiles(): DemoFile[] {
+export async function getFiles(): Promise<DemoFile[]> {
   try {
-    const raw = sessionStorage.getItem(FILES_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
+    return await api.get<DemoFile[]>("/api/files");
   } catch {
     return [];
   }
 }
 
-export function addFile(file: File): DemoFile {
-  const files = getFiles();
+export async function addFile(file: File): Promise<DemoFile> {
   const demoFile: DemoFile = {
-    id: Date.now().toString(),
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    addedAt: new Date().toISOString(),
+    originalName: file.name,
+    fileSize: file.size,
+    mimeType: file.type,
   };
 
-  const updated = [...files, demoFile];
-  sessionStorage.setItem(FILES_KEY, JSON.stringify(updated));
-
-  return demoFile;
+  return await api.post<DemoFile>("/api/files", demoFile);
 }
 
-export function deleteFile(id: string): void {
-  const files = getFiles();
-  const filtered = files.filter((f) => f.id !== id);
-  sessionStorage.setItem(FILES_KEY, JSON.stringify(filtered));
+export async function deleteFile(id: number): Promise<void> {
+  await api.delete(`/api/files/${id}`);
 }
 
 export { formatSize };

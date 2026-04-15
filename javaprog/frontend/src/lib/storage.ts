@@ -154,21 +154,30 @@ const DEFAULT_STATE: AppState = {
   seminars: { completed: [], queue: [] },
 };
 
-export function getState(): AppState {
+import { api } from "./api";
+
+export async function getState(): Promise<AppState> {
   try {
-    const raw = sessionStorage.getItem(STATE_KEY);
-    if (!raw) return DEFAULT_STATE;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_STATE, ...parsed };
+    const [profile, certs, seminars] = await Promise.all([
+      api.get<any>("/api/profile").catch(() => null),
+      api.get<any[]>("/api/certificates").catch(() => []),
+      api.get<{ completed: any[]; queue: any[] }>("/api/seminars").catch(() => ({ completed: [], queue: [] })),
+    ]);
+
+    return {
+      profile: profile || {},
+      savedCertificates: certs || [],
+      seminars: seminars || { completed: [], queue: [] },
+    };
   } catch {
     return DEFAULT_STATE;
   }
 }
 
-export function saveState(patch: Partial<AppState>): void {
-  const current = getState();
-  const updated = { ...current, ...patch };
-  sessionStorage.setItem(STATE_KEY, JSON.stringify(updated));
+export async function saveState(patch: Partial<AppState>): Promise<void> {
+  if (patch.profile) {
+    await api.put("/api/profile", patch.profile);
+  }
 }
 
 /*

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEMO_USER } from "@/lib/auth";
 import { toast } from "sonner";
 
 export default function Home() {
@@ -25,18 +24,13 @@ export default function Home() {
     }
   }, [user, router]);
 
-  const handleAutoFill = () => {
-    setEmail(DEMO_USER.email);
-    setPassword(DEMO_USER.password);
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLogging(true);
 
     try {
-      const result = login(email, password);
+      const result = await login(email, password);
       if (result.error) {
         setError(result.error);
         toast.error("Login failed", { description: result.error });
@@ -124,22 +118,6 @@ export default function Home() {
                 <CardTitle className="text-2xl">Welcome back</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Demo credentials alert */}
-                <Alert className="mb-6 bg-amber-50 border-amber-200">
-                  <AlertDescription className="text-amber-800 text-sm">
-                    <span className="font-semibold">Test login:</span> {DEMO_USER.email} / <strong>{DEMO_USER.password}</strong>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="ml-2 text-xs"
-                      onClick={handleAutoFill}
-                    >
-                      Auto-fill
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-
                 {/* Error alert */}
                 {error && (
                   <Alert variant="destructive" className="mb-4">
@@ -190,11 +168,6 @@ export default function Home() {
                     )}
                   </Button>
                 </form>
-
-                {/* Demo mode note */}
-                <p className="text-xs text-center text-muted-foreground mt-4">
-                  Demo mode — No account needed
-                </p>
               </CardContent>
             </Card>
           </div>

@@ -16,15 +16,11 @@ export function useAuth() {
   }, []);
 
   const login = (email: string, password: string) => {
-    const result = auth.demoLogin(email, password);
-    if (result.user) {
-      setUser(result.user);
-    }
-    return result;
+    return auth.backendLogin(email, password);
   };
 
   const logout = () => {
-    auth.demoLogout();
+    auth.backendLogout();
     setUser(null);
   };
 

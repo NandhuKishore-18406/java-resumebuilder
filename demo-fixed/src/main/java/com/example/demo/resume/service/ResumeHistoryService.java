@@ -21,7 +21,10 @@ public class ResumeHistoryService {
         return resumeHistoryRepository.save(snapshot);
     }
 
-    public void deleteSnapshot(Long id) {
-        resumeHistoryRepository.deleteById(id);
+    public void deleteSnapshot(Long id, Long userId) {
+        long deleted = resumeHistoryRepository.deleteByIdAndUserId(id, userId);
+        if (deleted == 0) {
+            throw new RuntimeException("Snapshot not found");
+        }
     }
 }

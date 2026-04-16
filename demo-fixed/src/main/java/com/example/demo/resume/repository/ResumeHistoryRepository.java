@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ResumeHistoryRepository extends JpaRepository<ResumeHistory, Long> {
     List<ResumeHistory> findByUserIdOrderByIdDesc(Long userId);
+
+    long deleteByIdAndUserId(Long id, Long userId);
 }

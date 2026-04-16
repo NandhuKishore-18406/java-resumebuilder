@@ -56,8 +56,8 @@ export default function ResumeBuilderPage() {
   
   const [history, setHistory] = useState<ResumeSnapshot[]>([]);
   const [savingVersion, setSavingVersion] = useState(false);
-  const [restoringId, setRestoringId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [restoringId, setRestoringId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
@@ -70,25 +70,26 @@ export default function ResumeBuilderPage() {
       }
     }
     
-    const currentState = getState();
-    if (currentState.resumeFields) setResumeFields(currentState.resumeFields);
-    if (currentState.resumeEduEntries) setEducation(currentState.resumeEduEntries);
-    if (currentState.resumeProjectEntries) setProjects(currentState.resumeProjectEntries);
-    if (currentState.resumeExpEntries) setExperience(currentState.resumeExpEntries);
-    if (currentState.resumeAchEntries) setAchievements(currentState.resumeAchEntries);
-    if (currentState.resumeCertEntries) setCertificates(currentState.resumeCertEntries);
-    
-    loadHistory();
+    (async () => {
+      const currentState = await getState();
+      if (currentState.resumeFields) setResumeFields(currentState.resumeFields);
+      if (currentState.resumeEduEntries) setEducation(currentState.resumeEduEntries);
+      if (currentState.resumeProjectEntries) setProjects(currentState.resumeProjectEntries);
+      if (currentState.resumeExpEntries) setExperience(currentState.resumeExpEntries);
+      if (currentState.resumeAchEntries) setAchievements(currentState.resumeAchEntries);
+      if (currentState.resumeCertEntries) setCertificates(currentState.resumeCertEntries);
+      await loadHistory();
+    })();
   }, [user, router]);
 
-  const loadHistory = () => {
-    const snapshots = getHistory();
+  const loadHistory = async () => {
+    const snapshots = await getHistory();
     setHistory(snapshots);
   };
 
   const handleLogout = () => {
-    const { demoLogout } = require("@/lib/auth");
-    demoLogout();
+    const { backendLogout } = require("@/lib/auth");
+    backendLogout();
     router.push("/");
     toast.success("Logged out successfully");
   };
@@ -160,7 +161,7 @@ export default function ResumeBuilderPage() {
     updateState(resumeState);
   };
 
-  const handleSaveVersion = () => {
+  const handleSaveVersion = async () => {
     setSavingVersion(true);
     const resumeData = {
       fields: resumeFields,
@@ -171,15 +172,18 @@ export default function ResumeBuilderPage() {
       certificates
     };
     
-    const snapshot = saveSnapshot(resumeData as any);
-    loadHistory();
-    setSavingVersion(false);
-    toast.success("Version saved!");
+    try {
+      await saveSnapshot(resumeData as any);
+      await loadHistory();
+      toast.success("Version saved!");
+    } finally {
+      setSavingVersion(false);
+    }
   };
 
-  const handleRestoreSnapshot = async (id: string) => {
+  const handleRestoreSnapshot = async (id: number) => {
     setRestoringId(id);
-    const resumeData = restoreSnapshot(id);
+    const resumeData = restoreSnapshot(id, history);
     
     if (resumeData) {
       setResumeFields(resumeData.fields);
@@ -195,10 +199,15 @@ export default function ResumeBuilderPage() {
     toast.success("Version restored!");
   };
 
-  const handleDeleteSnapshot = (id: string) => {
-    deleteSnapshot(id);
-    loadHistory();
-    toast.success("Version deleted!");
+  const handleDeleteSnapshot = async (id: number) => {
+    setDeletingId(id);
+    try {
+      await deleteSnapshot(id);
+      await loadHistory();
+      toast.success("Version deleted!");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const exportPDF = () => {
@@ -375,8 +384,9 @@ export default function ResumeBuilderPage() {
                               variant="ghost"
                               onClick={() => handleDeleteSnapshot(snapshot.id)}
                               className="text-destructive"
+                              disabled={deletingId === snapshot.id}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              {deletingId === snapshot.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </div>
                         </div>

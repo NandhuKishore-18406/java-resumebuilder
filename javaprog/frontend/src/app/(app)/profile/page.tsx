@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppState } from "@/hooks/useAppState";
 import { getSessionUser } from "@/lib/auth";
-import { getState, saveState, Education, Project, Profile, Experience, Publication } from "@/lib/storage";
+import { getState, Education, Project, Profile, Experience, Publication } from "@/lib/storage";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -97,8 +97,8 @@ export default function ProfilePage() {
   }, [user, router]);
 
   const handleLogout = () => {
-    const { demoLogout } = require("@/lib/auth");
-    demoLogout();
+    const { backendLogout } = require("@/lib/auth");
+    backendLogout();
     router.push("/");
     toast.success("Logged out successfully");
   };
@@ -254,11 +254,16 @@ export default function ProfilePage() {
       awards
     } as Profile;
 
-    saveState({ profile: updatedProfile });
-    updateState({ profile: updatedProfile });
-    setUnsaved(false);
-    setSaving(false);
-    toast.success("Profile saved successfully!");
+    try {
+      await updateState({ profile: updatedProfile });
+      setUnsaved(false);
+      toast.success("Profile saved successfully!");
+    } catch (e: any) {
+      const message = typeof e?.message === "string" ? e.message : "Failed to save profile";
+      toast.error("Profile save failed", { description: message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!user) return null;

@@ -32,8 +32,10 @@ public class ResumeHistoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSnapshot(@PathVariable Long id) {
-        resumeHistoryService.deleteSnapshot(id);
+    public ResponseEntity<Void> deleteSnapshot(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+        resumeHistoryService.deleteSnapshot(id, user.getId());
         return ResponseEntity.noContent().build();
     }
 }

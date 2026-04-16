@@ -115,21 +115,21 @@ export interface ResumeCertEntry {
 }
 
 export interface ResumeFields {
-  rv_name?: string;
-  rv_degree_short?: string;
-  rv_email?: string;
-  rv_phone?: string;
-  rv_location?: string;
-  rv_linkedin?: string;
-  rv_github?: string;
-  rv_leetcode?: string;
-  rv_summary?: string;
-  rv_prog_langs?: string;
-  rv_frameworks?: string;
-  rv_databases?: string;
-  rv_tools?: string;
-  rv_softskills?: string;
-  rv_interests?: string;
+  name?: string;
+  degree_short?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  leetcode?: string;
+  summary?: string;
+  prog_langs?: string;
+  frameworks?: string;
+  databases?: string;
+  tools?: string;
+  softskills?: string;
+  interests?: string;
 }
 
 export interface AppState {

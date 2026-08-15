@@ -64,6 +64,38 @@ export async function backendRegister(
   }
 }
 
+export async function backendGoogleLogin(
+  idToken: string
+): Promise<{ user: AuthUser | null; error: string | null }> {
+  try {
+    const res = await fetch(`${API_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { user: null, error: data.error || "Google authentication failed" };
+
+    sessionStorage.setItem("rb_jwt_token", data.token);
+
+    const meRes = await fetch(`${API_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${data.token}` },
+    });
+    let user: AuthUser;
+    if (meRes.ok) {
+      const meData = await meRes.json();
+      user = { email: meData.email, name: meData.name, id: meData.email };
+    } else {
+      user = { email: "", name: "Google User", id: "google-user" };
+    }
+
+    sessionStorage.setItem("rb_auth_user", JSON.stringify(user));
+    return { user, error: null };
+  } catch {
+    return { user: null, error: "Network error — is the backend running on port 8080?" };
+  }
+}
+
 export function backendLogout(): void {
   sessionStorage.removeItem("rb_jwt_token");
   sessionStorage.removeItem("rb_auth_user");

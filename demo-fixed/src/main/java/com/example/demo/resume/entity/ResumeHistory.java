@@ -8,10 +8,6 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "resume_history")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ResumeHistory {
 
     @Id
@@ -29,4 +25,21 @@ public class ResumeHistory {
 
     @Column(columnDefinition = "JSONB")
     private String resumeData;
+
+    public ResumeHistory() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getLabel() { return label; }
+    public void setLabel(String label) { this.label = label; }
+
+    public String getSavedAt() { return savedAt; }
+    public void setSavedAt(String savedAt) { this.savedAt = savedAt; }
+
+    public String getResumeData() { return resumeData; }
+    public void setResumeData(String resumeData) { this.resumeData = resumeData; }
 }

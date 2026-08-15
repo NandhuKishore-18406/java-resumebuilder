@@ -4,6 +4,8 @@ import com.example.demo.certificate.entity.Certificate;
 import com.example.demo.certificate.repository.CertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -20,7 +22,8 @@ public class CertificateService {
         return certificateRepository.save(certificate);
     }
 
-    public void deleteCertificate(Long id) {
-        certificateRepository.deleteById(id);
+    @Transactional
+    public void deleteCertificate(Long id, Long userId) {
+        certificateRepository.deleteByIdAndUserId(id, userId);
     }
 }

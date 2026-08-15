@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppState } from "@/hooks/useAppState";
 import { getSessionUser } from "@/lib/auth";
-import { getState, saveState, Profile, ResumeEducationEntry, ResumeProjectEntry, ResumeExpEntry, ResumeAchEntry, ResumeCertEntry } from "@/lib/storage";
+import { getState, saveState, Profile, ResumeFields, ResumeEducationEntry, ResumeProjectEntry, ResumeExpEntry, ResumeAchEntry, ResumeCertEntry } from "@/lib/storage";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export default function ResumeBuilderPage() {
   
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   
-  const [resumeFields, setResumeFields] = useState({
+  const [resumeFields, setResumeFields] = useState<ResumeFields>({
     name: "",
     degree_short: "",
     email: "",
@@ -72,7 +72,7 @@ export default function ResumeBuilderPage() {
     
     (async () => {
       const currentState = await getState();
-      if (currentState.resumeFields) setResumeFields(currentState.resumeFields);
+      if (currentState.resumeFields) setResumeFields((prev) => ({ ...prev, ...currentState.resumeFields }));
       if (currentState.resumeEduEntries) setEducation(currentState.resumeEduEntries);
       if (currentState.resumeProjectEntries) setProjects(currentState.resumeProjectEntries);
       if (currentState.resumeExpEntries) setExperience(currentState.resumeExpEntries);
@@ -135,13 +135,33 @@ export default function ResumeBuilderPage() {
       })));
     }
 
-    if (state.savedCertificates) {
+    if (profile?.experience) {
+      setExperience(profile.experience.map((exp, idx) => ({
+        id: Date.now() + idx + 100,
+        role: exp.role || "",
+        org: exp.company || "",
+        period: exp.period || "",
+        bullets: exp.description || ""
+      })));
+    }
+
+    if (state.savedCertificates?.length) {
       setCertificates(state.savedCertificates.map((cert, idx) => ({
-        id: Date.now() + idx,
+        id: Date.now() + idx + 200,
         title: cert.title,
         org: cert.org,
         year: cert.year
       })));
+    }
+
+    if (state.seminars?.completed?.length) {
+      const seminarEntries = state.seminars.completed.map((sem, idx) => ({
+        id: Date.now() + idx + 300,
+        rank: "Completed",
+        title: sem.title,
+        org: sem.org || "Seminar"
+      }));
+      setAchievements((prev) => [...prev.filter(a => a.rank !== "Completed"), ...seminarEntries]);
     }
 
     saveResumeState();
@@ -305,9 +325,7 @@ export default function ResumeBuilderPage() {
     saveResumeState();
   };
 
-  if (!user) return null;
-
-  const hasCompletedSeminars = state.seminars?.completed?.length > 0;
+  const hasCompletedSeminars = Boolean(state.seminars?.completed?.length && state.seminars.completed.length > 0);
 
   return (
     <div className="space-y-6">
@@ -957,13 +975,13 @@ export default function ResumeBuilderPage() {
                     <div style={{ fontSize: "10pt", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.6px", borderBottom: "1px solid #111", paddingBottom: "1px", marginBottom: "5px" }}>
                       Skills
                     </div>
-                    {[
-                      resumeFields.prog_langs && ["Programming Languages", resumeFields.prog_langs],
-                      resumeFields.frameworks && ["Frameworks & Libraries", resumeFields.frameworks],
-                      resumeFields.databases && ["Databases", resumeFields.databases],
-                      resumeFields.tools && ["Developer Tools", resumeFields.tools],
-                      resumeFields.softskills && ["Soft Skills", resumeFields.softskills]
-                    ].filter(Boolean).map(([cat, val], idx) => (
+                    {([
+                      resumeFields.prog_langs ? ["Programming Languages", resumeFields.prog_langs] : null,
+                      resumeFields.frameworks ? ["Frameworks & Libraries", resumeFields.frameworks] : null,
+                      resumeFields.databases ? ["Databases", resumeFields.databases] : null,
+                      resumeFields.tools ? ["Developer Tools", resumeFields.tools] : null,
+                      resumeFields.softskills ? ["Soft Skills", resumeFields.softskills] : null,
+                    ].filter((item): item is [string, string] => item !== null)).map(([cat, val], idx) => (
                       <div key={idx}>
                         <div style={{ fontWeight: "bold", fontSize: "9.5pt" }}>{cat}</div>
                         <div style={{ fontSize: "9.5pt" }}>{val}</div>
@@ -1049,12 +1067,12 @@ export default function ResumeBuilderPage() {
                     </div>
                   )}
 
-                  {state.profile?.publications?.length > 0 && (
+                  {Boolean(state.profile?.publications?.length && state.profile.publications.length > 0) && (
                     <div style={{ marginBottom: "9px" }}>
                       <div style={{ fontSize: "10pt", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.6px", borderBottom: "1px solid #111", paddingBottom: "1px", marginBottom: "5px" }}>
                         Publications
                       </div>
-                      {state.profile.publications.map((pub, idx) => (
+                      {state.profile?.publications?.map((pub, idx) => (
                         <div key={idx} style={{ fontSize: "9.5pt", marginBottom: "3px", display: "flex", gap: "5px" }}>
                           <span>•</span>
                           <span>

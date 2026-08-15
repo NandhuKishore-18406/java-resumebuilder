@@ -7,60 +7,24 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { FolderOpen, Upload, Download, Trash2, Loader2 } from "lucide-react";
+import { FolderOpen, Upload, Download, Trash2, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { getAuthHeaders } from "@/lib/auth";
 
-interface DemoFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  addedAt: string;
-}
-
-const FILES_KEY = "rb_files";
-
-function getFiles(): DemoFile[] {
-  try {
-    const raw = sessionStorage.getItem(FILES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function addFile(file: File): DemoFile {
-  const files = getFiles();
-  const newFile: DemoFile = {
-    id: Date.now().toString(),
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    addedAt: new Date().toISOString(),
-  };
-  const updated = [newFile, ...files];
-  sessionStorage.setItem(FILES_KEY, JSON.stringify(updated));
-  return newFile;
-}
-
-function deleteFile(id: string): void {
-  const files = getFiles().filter((f) => f.id !== id);
-  sessionStorage.setItem(FILES_KEY, JSON.stringify(files));
+interface BackendFile {
+  id: number;
+  originalName: string;
+  fileSize: number;
+  mimeType?: string;
+  storedPath?: string;
 }
 
 function formatSize(bytes: number): string {
+  if (!bytes) return "0 B";
   if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + " MB";
   if (bytes >= 1024) return (bytes / 1024).toFixed(0) + " KB";
   return bytes + " B";
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 function getFileExtension(filename: string): string {
@@ -69,52 +33,99 @@ function getFileExtension(filename: string): string {
 }
 
 export default function FileManagerPage() {
-  const [files, setFiles] = useState<DemoFile[]>([]);
+  const [files, setFiles] = useState<BackendFile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const fetchFiles = async () => {
+    try {
+      const data = await api.get<BackendFile[]>("/api/files");
+      setFiles(data || []);
+    } catch {
+      setFiles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setFiles(getFiles());
+    fetchFiles();
   }, []);
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(20);
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+    try {
+      setUploadProgress(60);
+      const res = await fetch(`${API_URL}/api/files/upload`, {
+        method: "POST",
+        headers: {
+          ...getAuthHeaders(),
+        },
+        body: formData,
       });
-    }, 80);
 
-    setTimeout(() => {
-      clearInterval(interval);
-      addFile(file);
-      setFiles(getFiles());
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Upload failed");
+      }
+
+      setUploadProgress(100);
+      toast.success("File uploaded successfully!");
+      fetchFiles();
+    } catch (err: any) {
+      toast.error(err.message || "File upload failed");
+    } finally {
       setUploading(false);
       setUploadProgress(0);
-      toast.success("File uploaded successfully!");
-    }, 800);
+      e.target.value = "";
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return;
-    deleteFile(deleteId);
-    setFiles(getFiles());
-    setDeleteId(null);
-    toast.success("File deleted");
+    try {
+      await api.delete(`/api/files/${deleteId}`);
+      toast.success("File deleted successfully");
+      setFiles((prev) => prev.filter((f) => f.id !== deleteId));
+    } catch {
+      toast.error("Failed to delete file");
+    } finally {
+      setDeleteId(null);
+    }
   };
 
-  const handleDownload = () => {
-    toast.info("Download not available in demo mode");
+  const handleDownload = async (file: BackendFile) => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+    try {
+      const res = await fetch(`${API_URL}/api/files/${file.id}/download`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.originalName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error("File download failed");
+    }
   };
 
   return (
@@ -158,7 +169,11 @@ export default function FileManagerPage() {
             </div>
           )}
 
-          {files.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : files.length === 0 ? (
             <EmptyState
               icon={FolderOpen}
               heading="No files uploaded"
@@ -171,7 +186,7 @@ export default function FileManagerPage() {
                   <TableRow>
                     <TableHead>File Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Date · Size</TableHead>
+                    <TableHead>Size</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -180,24 +195,24 @@ export default function FileManagerPage() {
                     <TableRow key={file.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">📎</span>
-                          {file.name}
+                          <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span>{file.originalName}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-secondary text-secondary-foreground">
-                          {getFileExtension(file.name)}
+                          {getFileExtension(file.originalName)}
                         </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {formatDate(file.addedAt)} · {formatSize(file.size)}
+                        {formatSize(file.fileSize)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleDownload}
+                            onClick={() => handleDownload(file)}
                           >
                             <Download className="h-4 w-4" />
                           </Button>

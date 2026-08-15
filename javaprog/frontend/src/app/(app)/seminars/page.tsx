@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useAppState } from "@/hooks/useAppState";
 import { toast } from "sonner";
 import { GraduationCap, CalendarClock, Plus, X, Check, Trash2 } from "lucide-react";
@@ -49,48 +50,71 @@ export default function SeminarsPage() {
     }
   };
 
-  const handleSaveSeminar = () => {
+  const handleSaveSeminar = async () => {
     if (!formData.title.trim()) { toast.error("Please enter a seminar title"); return; }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const isPast = formData.date && formData.date <= today;
-    const newSeminar = {
-      id: Date.now(),
+    const isPast = Boolean(formData.date && formData.date <= today);
+    const seminarPayload = {
       title: formData.title.trim(),
       org: formData.org.trim(),
       date: formData.date ? format(formData.date, "yyyy-MM-dd") : undefined,
       notes: formData.notes.trim(),
+      completed: isPast,
     };
-    if (isPast) {
-      updateState({ seminars: { completed: [...seminars.completed, newSeminar], queue: seminars.queue } });
-      toast.success("Seminar completed — added to resume automatically!");
-    } else {
-      updateState({ seminars: { completed: seminars.completed, queue: [...seminars.queue, newSeminar] } });
-      toast.success("Seminar added to queue");
+    try {
+      const { api } = await import("@/lib/api");
+      const saved = await api.post<any>("/api/seminars", seminarPayload);
+      if (isPast) {
+        updateState({ seminars: { completed: [...seminars.completed, saved], queue: seminars.queue } });
+        toast.success("Seminar completed — added to resume automatically!");
+      } else {
+        updateState({ seminars: { completed: seminars.completed, queue: [...seminars.queue, saved] } });
+        toast.success("Seminar added to queue");
+      }
+      setFormData({ title: "", org: "", date: undefined, notes: "" });
+      setShowAddForm(false);
+    } catch {
+      toast.error("Failed to save seminar to server");
     }
-    setFormData({ title: "", org: "", date: undefined, notes: "" });
-    setShowAddForm(false);
   };
 
-  const handleMarkComplete = (id: number) => {
+  const handleMarkComplete = async (id: number) => {
     const seminar = seminars.queue.find((s) => s.id === id);
     if (!seminar) return;
-    updateState({
-      seminars: {
-        completed: [...seminars.completed, { ...seminar, date: seminar.date || format(new Date(), "yyyy-MM-dd") }],
-        queue: seminars.queue.filter((s) => s.id !== id),
-      },
-    });
-    toast.success(`"${seminar.title}" completed — added to resume!`);
+    const updatedPayload = {
+      ...seminar,
+      completed: true,
+      date: seminar.date || format(new Date(), "yyyy-MM-dd"),
+    };
+    try {
+      const { api } = await import("@/lib/api");
+      const saved = await api.put<any>(`/api/seminars/${id}`, updatedPayload);
+      updateState({
+        seminars: {
+          completed: [...seminars.completed, saved],
+          queue: seminars.queue.filter((s) => s.id !== id),
+        },
+      });
+      toast.success(`"${seminar.title}" completed — added to resume!`);
+    } catch {
+      toast.error("Failed to update seminar on server");
+    }
   };
 
-  const handleDeleteSeminar = (type: "completed" | "queue", id: number) => {
-    if (type === "completed") {
-      updateState({ seminars: { completed: seminars.completed.filter((s) => s.id !== id), queue: seminars.queue } });
-    } else {
-      updateState({ seminars: { completed: seminars.completed, queue: seminars.queue.filter((s) => s.id !== id) } });
+  const handleDeleteSeminar = async (type: "completed" | "queue", id: number) => {
+    try {
+      const { api } = await import("@/lib/api");
+      await api.delete(`/api/seminars/${id}`);
+      if (type === "completed") {
+        updateState({ seminars: { completed: seminars.completed.filter((s) => s.id !== id), queue: seminars.queue } });
+      } else {
+        updateState({ seminars: { completed: seminars.completed, queue: seminars.queue.filter((s) => s.id !== id) } });
+      }
+      toast.success("Seminar deleted");
+    } catch {
+      toast.error("Failed to delete seminar from server");
     }
-    toast.success("Seminar deleted");
   };
 
   const formatDate = (dateString?: string) => {
@@ -124,7 +148,10 @@ export default function SeminarsPage() {
                         {seminar.notes && <p className="text-sm mt-2 italic text-muted-foreground">{seminar.notes}</p>}
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-secondary text-secondary-foreground">✓ In Resume</span>
+                        <Badge variant="secondary" className="gap-1 font-normal text-xs">
+                          <Check className="h-3 w-3 text-green-600" />
+                          <span>In Resume</span>
+                        </Badge>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteSeminar("completed", seminar.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </div>
@@ -161,7 +188,7 @@ export default function SeminarsPage() {
                 <Card key={seminar.id} className="hover:shadow-sm transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1"><p className="font-medium">{seminar.title}</p><p className="text-sm text-muted-foreground">{seminar.org && `${seminar.org} · `}📅 {formatDate(seminar.date)}</p>{seminar.notes && <p className="text-sm mt-2 italic text-muted-foreground">{seminar.notes}</p>}</div>
+                      <div className="flex-1"><p className="font-medium">{seminar.title}</p><p className="text-sm text-muted-foreground flex items-center gap-1">{seminar.org && `${seminar.org} · `}<CalendarClock className="h-3.5 w-3.5 inline text-muted-foreground" />{formatDate(seminar.date)}</p>{seminar.notes && <p className="text-sm mt-2 italic text-muted-foreground">{seminar.notes}</p>}</div>
                       <div className="flex items-center gap-2 flex-shrink-0"><Button size="sm" onClick={() => handleMarkComplete(seminar.id)}><Check className="h-4 w-4 mr-1" />Mark Complete</Button><Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteSeminar("queue", seminar.id)}><Trash2 className="h-4 w-4" /></Button></div>
                     </div>
                   </CardContent>

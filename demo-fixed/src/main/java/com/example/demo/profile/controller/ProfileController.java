@@ -25,8 +25,7 @@ public class ProfileController {
     public ResponseEntity<Profile> updateProfile(
             @AuthenticationPrincipal User user,
             @RequestBody Profile profile) {
-        profile.setUserId(user.getId());
-        Profile saved = profileService.saveProfile(profile);
+        Profile saved = profileService.saveProfile(user, profile);
         return ResponseEntity.ok(saved);
     }
 }

@@ -18,13 +18,13 @@ export async function getFiles(): Promise<DemoFile[]> {
 }
 
 export async function addFile(file: File): Promise<DemoFile> {
-  const demoFile: DemoFile = {
+  const demoFile: Omit<DemoFile, "id"> = {
     originalName: file.name,
     fileSize: file.size,
     mimeType: file.type,
   };
 
-  return await api.post<DemoFile>("/api/files", demoFile);
+  return await api.post<DemoFile>("/api/files/upload", demoFile);
 }
 
 export async function deleteFile(id: number): Promise<void> {
@@ -32,17 +32,3 @@ export async function deleteFile(id: number): Promise<void> {
 }
 
 export { formatSize };
-
-/*
- * ── JAVA BACKEND FILE OPS (uncomment when ready) ──────────────────────────────
- * GET    /api/files               → list file metadata (JDBI)
- * POST   /api/files/upload        → multipart upload → disk/S3 + JDBI record
- * DELETE /api/files/:id           → removes file + DB record
- * GET    /api/files/:id/download  → streams file bytes
- *
- * Replace demoFiles.ts functions with fetch() calls + getAuthHeaders()
- *
- * DB table (JDBI):
- *   files(id, user_id, original_name, file_size, mime_type, stored_path, created_at)
- * ─────────────────────────────────────────────────────────────────────────────
- */

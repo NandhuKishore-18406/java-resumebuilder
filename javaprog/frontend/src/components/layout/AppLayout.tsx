@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar, SidebarTrigger } from "./AppSidebar";
@@ -14,14 +14,30 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/");
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sidebar_collapsed");
+    if (stored !== null) {
+      setIsCollapsed(stored === "true");
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar_collapsed", String(next));
+      return next;
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -30,7 +46,7 @@ export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-mesh-gradient">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -41,15 +57,25 @@ export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-mesh-gradient flex flex-col font-sans">
       <AppHeader onLogout={handleLogout} />
-      <div className="flex">
-        {showSidebar && <AppSidebar onLogout={handleLogout} />}
-        <main className={`flex-1 transition-all ${showSidebar ? "lg:ml-64" : ""}`}>
-          <div className="lg:hidden p-4 border-b bg-background">
-            <SidebarTrigger onClick={() => {/* Mobile sidebar handled by Sheet */}} />
-          </div>
-          <div className="p-4 md:p-6 lg:p-8">
+      <div className="flex flex-1">
+        {showSidebar && (
+          <AppSidebar
+            onLogout={handleLogout}
+            mobileOpen={mobileOpen}
+            onMobileOpenChange={setMobileOpen}
+            isCollapsed={isCollapsed}
+            onToggleCollapse={toggleCollapse}
+          />
+        )}
+        <main className={`flex-1 transition-all duration-300 ease-in-out ${showSidebar ? (isCollapsed ? "lg:ml-16" : "lg:ml-64") : ""}`}>
+          {showSidebar && (
+            <div className="lg:hidden p-4 border-b border-border/50 bg-background/75 backdrop-blur-md flex items-center justify-between">
+              <SidebarTrigger onClick={() => setMobileOpen(true)} />
+            </div>
+          )}
+          <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>

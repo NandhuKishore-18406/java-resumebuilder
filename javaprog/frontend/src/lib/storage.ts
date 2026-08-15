@@ -60,6 +60,7 @@ export interface Profile {
   databases?: string;
   tools?: string;
   softskills?: string;
+  education?: string | Education[];
   edu?: Education[];
   projects?: Project[];
   experience?: Experience[];
@@ -147,7 +148,6 @@ export interface AppState {
   resumeFields?: ResumeFields;
 }
 
-const STATE_KEY = "rb_state";
 const DEFAULT_STATE: AppState = {
   profile: {},
   savedCertificates: [],
@@ -156,16 +156,38 @@ const DEFAULT_STATE: AppState = {
 
 import { api } from "./api";
 
+function parseJsonArray<T>(val: any): T[] {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export async function getState(): Promise<AppState> {
   try {
-    const [profile, certs, seminars] = await Promise.all([
+    const [rawProfile, certs, seminars] = await Promise.all([
       api.get<any>("/api/profile").catch(() => null),
       api.get<any[]>("/api/certificates").catch(() => []),
       api.get<{ completed: any[]; queue: any[] }>("/api/seminars").catch(() => ({ completed: [], queue: [] })),
     ]);
 
+    const formattedProfile: Profile = rawProfile ? { ...rawProfile } : {};
+    if (rawProfile) {
+      formattedProfile.edu = parseJsonArray<Education>(rawProfile.education || rawProfile.edu);
+      formattedProfile.projects = parseJsonArray<Project>(rawProfile.projects);
+      formattedProfile.experience = parseJsonArray<Experience>(rawProfile.experience);
+      formattedProfile.publications = parseJsonArray<Publication>(rawProfile.publications);
+    }
+
     return {
-      profile: profile || {},
+      profile: formattedProfile,
       savedCertificates: certs || [],
       seminars: seminars || { completed: [], queue: [] },
     };
@@ -176,20 +198,11 @@ export async function getState(): Promise<AppState> {
 
 export async function saveState(patch: Partial<AppState>): Promise<void> {
   if (patch.profile) {
-    await api.put("/api/profile", patch.profile);
+    const p: any = { ...patch.profile };
+    p.education = Array.isArray(p.edu) ? JSON.stringify(p.edu) : p.education;
+    p.projects = Array.isArray(p.projects) ? JSON.stringify(p.projects) : p.projects;
+    p.experience = Array.isArray(p.experience) ? JSON.stringify(p.experience) : p.experience;
+    p.publications = Array.isArray(p.publications) ? JSON.stringify(p.publications) : p.publications;
+    await api.put("/api/profile", p);
   }
 }
-
-/*
- * ── JAVA BACKEND STORAGE (uncomment when ready) ───────────────────────────────
- * Replace sessionStorage calls with JDBC/JDBI API calls:
- *
- * Profile:   GET/PUT  /api/profile
- * Certs:     GET/POST/DELETE /api/certificates/:id
- * Seminars:  GET/POST/PATCH/DELETE /api/seminars/:id
- * Files:     GET/POST /api/files/upload, DELETE/GET /api/files/:id/download
- * History:   GET/POST/DELETE /api/resume/history/:id
- *
- * All requests: headers: { Authorization: `Bearer ${token}` }
- * ─────────────────────────────────────────────────────────────────────────────
- */

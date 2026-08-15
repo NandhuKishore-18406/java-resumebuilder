@@ -1,22 +1,13 @@
 import type { Metadata } from "next";
-import { Comfortaa, Crimson_Text } from "next/font/google";
+import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-// Comfortaa for headings/UI
-const comfortaa = Comfortaa({
+const quicksand = Quicksand({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-quicksand",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
-});
-
-// Crimson Text for resume body
-const crimsonText = Crimson_Text({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -35,11 +26,10 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        comfortaa.variable,
-        crimsonText.variable
+        quicksand.variable
       )}
     >
-      <body className="min-h-full flex flex-col font-body">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );
 }

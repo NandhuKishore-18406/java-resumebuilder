@@ -6,6 +6,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.example.demo.profile.util.KeepAsJsonStringDeserializer;
 
 @Entity
 @Table(name = "profiles")
@@ -87,18 +89,22 @@ public class Profile {
 
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String education;
 
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String projects;
 
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String experience;
 
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String publications;
 
     @Column(length = 255)

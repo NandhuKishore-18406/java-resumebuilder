@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAppState } from "@/hooks/useAppState";
 import { toast } from "sonner";
-import { Award, Upload, X, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Award, Upload, X, Trash2, Check } from "lucide-react";
 
 interface PendingCertificate {
   title: string;
@@ -59,25 +60,31 @@ export default function CertificatesPage() {
     setPendingCert((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
-  const handleConfirmCertificate = () => {
+  const handleConfirmCertificate = async () => {
     if (!pendingCert) return;
 
-    const newCert = {
-      id: Date.now(),
-      ...pendingCert,
-    };
-
-    const updated = [...savedCertificates, newCert];
-    updateState({ savedCertificates: updated });
-
-    toast.success("Certificate saved and added to your profile!");
-    setPendingCert(null);
+    try {
+      const { api } = await import("@/lib/api");
+      const saved = await api.post<any>("/api/certificates", pendingCert);
+      const updated = [...savedCertificates, saved];
+      updateState({ savedCertificates: updated });
+      toast.success("Certificate saved and added to your profile!");
+      setPendingCert(null);
+    } catch {
+      toast.error("Failed to save certificate to server");
+    }
   };
 
-  const handleDeleteCertificate = (id: number) => {
-    const updated = savedCertificates.filter((c) => c.id !== id);
-    updateState({ savedCertificates: updated });
-    toast.success("Certificate deleted");
+  const handleDeleteCertificate = async (id: number) => {
+    try {
+      const { api } = await import("@/lib/api");
+      await api.delete(`/api/certificates/${id}`);
+      const updated = savedCertificates.filter((c) => c.id !== id);
+      updateState({ savedCertificates: updated });
+      toast.success("Certificate deleted");
+    } catch {
+      toast.error("Failed to delete certificate from server");
+    }
   };
 
   return (
@@ -128,12 +135,10 @@ export default function CertificatesPage() {
         <Card className="border-primary/50 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full">
-                <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
-                  ✓
-                </span>
-                Extracted Data
-              </div>
+              <Badge variant="outline" className="gap-1.5 border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400 font-medium px-3 py-1">
+                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                <span>Extracted Data</span>
+              </Badge>
               <Button
                 variant="ghost"
                 size="icon"

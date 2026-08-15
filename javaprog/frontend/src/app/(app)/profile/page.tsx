@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppState } from "@/hooks/useAppState";
 import { getSessionUser } from "@/lib/auth";
@@ -17,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CalendarIcon, Plus, Trash2, X, Loader2, BookOpen, GraduationCap } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, X, Loader2, BookOpen, GraduationCap, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -991,7 +992,10 @@ export default function ProfilePage() {
                 <div className="text-center py-8">
                   <p className="text-4xl font-bold text-primary">{profile.certificatesCount || 0}</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    <a href="/certificates" className="text-blue-600 hover:underline">Manage certificates →</a>
+                    <Link href="/certificates" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                      <span>Manage certificates</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </p>
                 </div>
               </CardContent>
@@ -1006,7 +1010,10 @@ export default function ProfilePage() {
                 <div className="text-center py-8">
                   <p className="text-4xl font-bold text-primary">{profile.seminarsCount || 0}</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    <a href="/seminars" className="text-blue-600 hover:underline">Manage seminars →</a>
+                    <Link href="/seminars" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                      <span>Manage seminars</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </p>
                 </div>
               </CardContent>

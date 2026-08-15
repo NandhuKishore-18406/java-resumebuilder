@@ -32,8 +32,10 @@ public class CertificateController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCertificate(@PathVariable Long id) {
-        certificateService.deleteCertificate(id);
+    public ResponseEntity<Void> deleteCertificate(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+        certificateService.deleteCertificate(id, user.getId());
         return ResponseEntity.noContent().build();
     }
 }

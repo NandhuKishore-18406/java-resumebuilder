@@ -16,7 +16,17 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error ?? err.message ?? `HTTP ${res.status}`);
   }
-  return res.json();
+
+  if (res.status === 204) {
+    return null as unknown as T;
+  }
+
+  const text = await res.text();
+  if (!text || text.trim() === "") {
+    return null as unknown as T;
+  }
+
+  return JSON.parse(text);
 }
 
 export const api = {

@@ -2,8 +2,12 @@
 """
 Single Command Launcher for Academic Resume Builder & PyPortfolio Platform
 ---------------------------------------------------------------------------
-Launches Spring Boot backend (port 8080) and Next.js frontend (port 3000),
-cleans stale port conflicts, monitors readiness, and opens your browser.
+1. Checks and starts PostgreSQL service if stopped.
+2. Checks PostgreSQL database (demo_db) and user privileges.
+3. Verifies and auto-creates database tables using schema.sql if missing.
+4. Cleans up stale port conflicts (8080 & 3000).
+5. Launches Spring Boot backend & Next.js frontend concurrently.
+6. Opens the web application in your default browser.
 
 Usage:
   python3 run_app.py
@@ -29,6 +33,7 @@ RESET = "\033[0m"
 ROOT_DIR = Path(__file__).resolve().parent
 BACKEND_DIR = ROOT_DIR / "demo-fixed"
 FRONTEND_DIR = ROOT_DIR / "javaprog" / "frontend"
+SCHEMA_SQL_PATH = BACKEND_DIR / "src" / "main" / "resources" / "schema.sql"
 
 processes = []
 
@@ -44,7 +49,7 @@ def check_port(port):
 def kill_port_process(port):
     """Free port if occupied by a stale process."""
     if check_port(port):
-        log(f"Port {port} is occupied. Attempting to free port...", YELLOW)
+        log(f"Port {port} is occupied. Freeing port...", YELLOW)
         try:
             subprocess.run(["fuser", "-k", f"{port}/tcp"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(1)
@@ -59,6 +64,85 @@ def wait_for_port(port, timeout=45):
             return True
         time.sleep(1)
     return False
+
+def ensure_postgresql_service():
+    """Ensure PostgreSQL service is active on port 5432."""
+    if check_port(5432):
+        log("PostgreSQL service is running on port 5432.", GREEN)
+        return True
+
+    log("PostgreSQL port 5432 is inactive. Attempting to start PostgreSQL service...", YELLOW)
+    try:
+        subprocess.run(["sudo", "systemctl", "start", "postgresql"], check=False)
+    except Exception:
+        try:
+            subprocess.run(["sudo", "service", "postgresql", "start"], check=False)
+        except Exception:
+            pass
+
+    if wait_for_port(5432, timeout=10):
+        log("PostgreSQL service started successfully.", GREEN)
+        return True
+    else:
+        log("Could not start PostgreSQL automatically on port 5432. Please verify PostgreSQL service.", RED)
+        return False
+
+def ensure_database_and_tables():
+    """Check and auto-create database demo_db, user javaproj, and schema tables."""
+    log("Verifying PostgreSQL database 'demo_db' and tables...", BLUE)
+
+    # 1. Check if psql is installed
+    try:
+        subprocess.run(["psql", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    except Exception:
+        log("psql CLI tool not found. Spring Boot will handle table creation on startup.", YELLOW)
+        return
+
+    # 2. Check if user javaproj and database demo_db exist
+    check_db_cmd = ["psql", "-U", "javaproj", "-d", "demo_db", "-h", "localhost", "-p", "5432", "-c", "\\dt"]
+    env = os.environ.copy()
+    env["PGPASSWORD"] = "Javaproj123"
+
+    res = subprocess.run(check_db_cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    if res.returncode != 0:
+        log("Database 'demo_db' or user 'javaproj' requires initialization. Running setup commands...", YELLOW)
+        init_sql = """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'javaproj') THEN
+                CREATE ROLE javaproj WITH LOGIN PASSWORD 'Javaproj123';
+            END IF;
+        END
+        $$;
+        SELECT 'CREATE DATABASE demo_db OWNER javaproj'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'demo_db')\\gexec
+        GRANT ALL ON SCHEMA public TO javaproj;
+        """
+        try:
+            subprocess.run(["sudo", "-u", "postgres", "psql", "-c", init_sql], check=False)
+        except Exception:
+            pass
+
+    # 3. Check table existence
+    tables_cmd = ["psql", "-U", "javaproj", "-d", "demo_db", "-h", "localhost", "-p", "5432", "-t", "-c", "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"]
+    tables_res = subprocess.run(tables_cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    table_count = 0
+    if tables_res.returncode == 0 and tables_res.stdout.strip().isdigit():
+        table_count = int(tables_res.stdout.strip())
+
+    if table_count < 6 and SCHEMA_SQL_PATH.exists():
+        log(f"Tables missing (found {table_count}/6). Executing schema.sql to create database tables...", YELLOW)
+        exec_schema_cmd = ["psql", "-U", "javaproj", "-d", "demo_db", "-h", "localhost", "-p", "5432", "-f", str(SCHEMA_SQL_PATH)]
+        exec_res = subprocess.run(exec_schema_cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        if exec_res.returncode == 0:
+            log("All PostgreSQL database tables created successfully from schema.sql!", GREEN)
+        else:
+            log("Spring Boot spring.sql.init will auto-create missing tables on startup.", YELLOW)
+    else:
+        log("PostgreSQL database tables verified OK.", GREEN)
 
 def cleanup(signum=None, frame=None):
     """Graceful termination of sub-processes."""
@@ -89,11 +173,15 @@ def main():
         log(f"Frontend directory not found at {FRONTEND_DIR}", RED)
         sys.exit(1)
 
-    # 2. Clear stale port conflicts
+    # 2. Ensure PostgreSQL service is running & database tables exist
+    ensure_postgresql_service()
+    ensure_database_and_tables()
+
+    # 3. Clear stale port conflicts
     kill_port_process(8080)
     kill_port_process(3000)
 
-    # 3. Launch Spring Boot Backend
+    # 4. Launch Spring Boot Backend
     log("Starting Spring Boot Backend (Port 8080)...", BLUE)
     mvn_wrapper = "./mvnw" if (BACKEND_DIR / "mvnw").exists() else "mvn"
     backend_cmd = [mvn_wrapper, "spring-boot:run"]
@@ -108,7 +196,7 @@ def main():
     )
     processes.append(backend_proc)
 
-    # 4. Launch Next.js Frontend
+    # 5. Launch Next.js Frontend
     log("Starting Next.js Frontend (Port 3000)...", BLUE)
     frontend_cmd = ["npx", "pnpm", "dev"]
     
@@ -122,7 +210,7 @@ def main():
     )
     processes.append(frontend_proc)
 
-    # 5. Monitor Port Readiness
+    # 6. Monitor Port Readiness
     log("Waiting for backend and frontend services to become ready...", YELLOW)
     backend_ready = wait_for_port(8080, timeout=30)
     frontend_ready = wait_for_port(3000, timeout=20)
@@ -148,7 +236,6 @@ def main():
     try:
         while True:
             time.sleep(1)
-            # Check if any process terminated unexpectedly
             for p in processes:
                 if p.poll() is not None:
                     log(f"Process {p.args} exited with code {p.returncode}", RED)

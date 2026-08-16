@@ -151,15 +151,6 @@ Empty sections are automatically hidden so the final resume remains clean.
 - Restore previous versions
 - Delete saved versions
 
-## 🤖 AI Assistance
-
-The backend includes AI-powered assistance for:
-
-- Profile improvement suggestions
-- Resume section improvement suggestions
-
-AI is an enhancement feature; the core resume generation is based on the user's stored profile and activity data.
-
 ## 📥 PDF Export
 
 Users can preview the resume using the fixed template and export it as a PDF.

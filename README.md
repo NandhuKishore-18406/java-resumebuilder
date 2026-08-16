@@ -183,10 +183,6 @@ Users can preview the resume using the fixed template and export it as a PDF.
 
 - PostgreSQL
 
-## AI
-
-- GLM-4 API
-
 ## Authentication
 
 - JWT

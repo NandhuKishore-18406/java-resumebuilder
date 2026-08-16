@@ -312,14 +312,6 @@ GET    /api/resume/history
 POST   /api/resume/history
 DELETE /api/resume/history/{id}
 ```
-
-## AI
-
-```http
-POST /api/ai/profile-feedback
-POST /api/ai/resume-tips
-```
-
 ---
 
 # ⚙️ Requirements

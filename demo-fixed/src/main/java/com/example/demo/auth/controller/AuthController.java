@@ -1,5 +1,6 @@
 package com.example.demo.auth.controller;
 
+import com.example.demo.auth.dto.GoogleLoginRequest;
 import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.RegisterRequest;
 import com.example.demo.auth.service.AuthService;
@@ -50,6 +51,21 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Invalid email or password"));
+        }
+    }
+
+    /**
+     * POST /api/auth/google
+     * Body: { "idToken": "google_id_token_string" }
+     */
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        try {
+            String token = service.googleLogin(request);
+            return ResponseEntity.ok(Map.of("token", token, "message", "Google login successful"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", e.getMessage()));
         }
     }
 

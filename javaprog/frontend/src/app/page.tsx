@@ -1,28 +1,95 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
+import { GraduationCap, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+          renderButton: (parent: HTMLElement, options: { theme?: string; size?: string; width?: string; text?: string; shape?: string }) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
 export default function Home() {
   const router = useRouter();
-  const { user, login, isLoading } = useAuth();
+  const { user, login, googleLogin, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLogging, setIsLogging] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
     if (user) {
       router.push("/dashboard");
     }
   }, [user, router]);
+
+  const handleGoogleCredential = useCallback(async (response: { credential: string }) => {
+    setError(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const result = await googleLogin(response.credential);
+      if (result.error) {
+        setError(result.error);
+        toast.error("Google authentication failed", { description: result.error });
+      } else {
+        toast.success("Welcome back!");
+        router.push("/dashboard");
+      }
+    } catch {
+      setError("Google authentication failed. Please try again.");
+      toast.error("Google authentication error");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }, [googleLogin, router]);
+
+  const initGoogleSignIn = useCallback(() => {
+    if (!googleClientId) return;
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+
+      const btnContainer = document.getElementById("google-signin-btn-container");
+      if (btnContainer) {
+        btnContainer.innerHTML = "";
+        window.google.accounts.id.renderButton(btnContainer, {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "signin_with",
+          shape: "rectangular",
+        });
+      }
+    }
+  }, [googleClientId, handleGoogleCredential]);
+
+  useEffect(() => {
+    if (googleClientId && typeof window !== "undefined" && window.google?.accounts?.id) {
+      initGoogleSignIn();
+    }
+  }, [googleClientId, initGoogleSignIn]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +123,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-mesh-gradient flex flex-col font-sans relative overflow-hidden">
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        onLoad={initGoogleSignIn}
+        strategy="afterInteractive"
+      />
+
       {/* Background ambient glow shapes */}
       <div className="absolute top-1/4 left-1/10 w-96 h-96 rounded-full bg-[#12708c]/10 blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/10 w-96 h-96 rounded-full bg-[#0f5c73]/10 blur-3xl pointer-events-none" />
@@ -147,7 +220,7 @@ export default function Home() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      disabled={isLogging}
+                      disabled={isLogging || isGoogleLoading}
                       className="rounded-xl bg-background/50 border-border/80"
                     />
                   </div>
@@ -163,12 +236,12 @@ export default function Home() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      disabled={isLogging}
+                      disabled={isLogging || isGoogleLoading}
                       className="rounded-xl bg-background/50 border-border/80"
                     />
                   </div>
 
-                  <Button type="submit" className="w-full rounded-xl font-bold shadow-md shadow-primary/20" disabled={isLogging}>
+                  <Button type="submit" className="w-full rounded-xl font-bold shadow-md shadow-primary/20" disabled={isLogging || isGoogleLoading}>
                     {isLogging ? (
                       <span className="flex items-center gap-2">
                         <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
@@ -178,18 +251,53 @@ export default function Home() {
                       "Login"
                     )}
                   </Button>
-
-                  <p className="text-center text-sm text-muted-foreground font-medium pt-2">
-                    Don't have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => router.push("/signup")}
-                      className="text-primary hover:underline font-bold"
-                    >
-                      Sign up
-                    </button>
-                  </p>
                 </form>
+
+                {/* Separator Divider */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border/60" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-3 text-muted-foreground font-semibold tracking-wider">
+                      OR
+                    </span>
+                  </div>
+                </div>
+
+                {/* Google Sign-In Container */}
+                <div className="space-y-3">
+                  {googleClientId ? (
+                    <div className="w-full flex flex-col items-center justify-center min-h-[44px]">
+                      {isGoogleLoading ? (
+                        <div className="flex items-center justify-center gap-2 py-2 text-sm font-medium text-muted-foreground">
+                          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                          Authenticating with Google...
+                        </div>
+                      ) : (
+                        <div id="google-signin-btn-container" className="w-full flex justify-center" />
+                      )}
+                    </div>
+                  ) : (
+                    <Alert className="rounded-xl border-amber-500/50 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                      <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-xs font-medium">
+                        Google Sign-In is not configured. Set <code className="font-bold">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> in your environment.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                <p className="text-center text-sm text-muted-foreground font-medium pt-4">
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/signup")}
+                    className="text-primary hover:underline font-bold"
+                  >
+                    Sign up
+                  </button>
+                </p>
               </CardContent>
             </Card>
           </div>

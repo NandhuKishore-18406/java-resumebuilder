@@ -8,10 +8,6 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "seminars")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Seminar {
 
     @Id
@@ -35,4 +31,27 @@ public class Seminar {
 
     @Column(nullable = false)
     private Boolean completed;
+
+    public Seminar() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getOrg() { return org; }
+    public void setOrg(String org) { this.org = org; }
+
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public Boolean getCompleted() { return completed; }
+    public void setCompleted(Boolean completed) { this.completed = completed; }
 }

@@ -19,10 +19,14 @@ export function useAuth() {
     return auth.backendLogin(email, password);
   };
 
+  const googleLogin = (idToken: string) => {
+    return auth.backendGoogleLogin(idToken);
+  };
+
   const logout = () => {
     auth.backendLogout();
     setUser(null);
   };
 
-  return { user, login, logout, isLoading };
+  return { user, login, googleLogin, logout, isLoading };
 }

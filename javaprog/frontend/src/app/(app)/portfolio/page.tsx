@@ -129,15 +129,6 @@ export default function PortfolioPage() {
     const data = buildPortfolioData();
     const html = generateSingleStandaloneHtml(data);
     setGeneratedHtml(html);
-
-    if (iframeRef.current) {
-      const doc = iframeRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(html);
-        doc.close();
-      }
-    }
     toast.success("Portfolio website created successfully!");
   };
 
@@ -184,12 +175,12 @@ export default function PortfolioPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "pyportfolio_bundle.zip";
+      a.download = "portfolio_bundle.zip";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("Downloaded PyPortfolio .zip package!");
+      toast.success("Downloaded Portfolio .zip package!");
     } catch {
       // Fallback client single download
       handleDownloadStandaloneHtml();
@@ -207,7 +198,7 @@ export default function PortfolioPage() {
             <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Globe className="h-5 w-5" />
             </div>
-            <span>PyPortfolio Generator</span>
+            <span>Portfolio Generator</span>
           </h1>
           <p className="text-sm text-muted-foreground font-medium">
             Turn your profile details into a cinematic, interactive personal portfolio website.
@@ -336,8 +327,9 @@ export default function PortfolioPage() {
           ) : (
             <iframe
               ref={iframeRef}
-              title="PyPortfolio Live Preview"
-              className="w-full h-full border-none"
+              title="Portfolio Live Preview"
+              className="w-full h-full border-none bg-black"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               srcDoc={generatedHtml}
             />
           )}

@@ -164,7 +164,7 @@ function parseJsonArray<T>(val: any): T[] {
       const parsed = JSON.parse(val);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return [];
+      return val.split(", ").filter(Boolean) as unknown as T[];
     }
   }
   return [];
@@ -184,6 +184,8 @@ export async function getState(): Promise<AppState> {
       formattedProfile.projects = parseJsonArray<Project>(rawProfile.projects);
       formattedProfile.experience = parseJsonArray<Experience>(rawProfile.experience);
       formattedProfile.publications = parseJsonArray<Publication>(rawProfile.publications);
+      formattedProfile.languages = parseJsonArray<string>(rawProfile.languages);
+      formattedProfile.awards = parseJsonArray<string>(rawProfile.awards);
     }
 
     return {
@@ -199,10 +201,12 @@ export async function getState(): Promise<AppState> {
 export async function saveState(patch: Partial<AppState>): Promise<void> {
   if (patch.profile) {
     const p: any = { ...patch.profile };
-    p.education = Array.isArray(p.edu) ? JSON.stringify(p.edu) : p.education;
+    p.education = Array.isArray(p.edu) ? JSON.stringify(p.edu) : (Array.isArray(p.education) ? JSON.stringify(p.education) : p.education);
     p.projects = Array.isArray(p.projects) ? JSON.stringify(p.projects) : p.projects;
     p.experience = Array.isArray(p.experience) ? JSON.stringify(p.experience) : p.experience;
     p.publications = Array.isArray(p.publications) ? JSON.stringify(p.publications) : p.publications;
+    p.languages = Array.isArray(p.languages) ? JSON.stringify(p.languages) : p.languages;
+    p.awards = Array.isArray(p.awards) ? JSON.stringify(p.awards) : p.awards;
     await api.put("/api/profile", p);
   }
 }

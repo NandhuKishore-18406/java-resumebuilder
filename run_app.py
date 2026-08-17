@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Single Command Launcher for Academic Resume Builder & PyPortfolio Platform
+Single Command Launcher for Academic Resume Builder & Portfolio Platform
 ---------------------------------------------------------------------------
 1. Checks and starts PostgreSQL service if stopped.
 2. Checks PostgreSQL database (demo_db) and user privileges.
@@ -36,6 +36,16 @@ FRONTEND_DIR = ROOT_DIR / "javaprog" / "frontend"
 SCHEMA_SQL_PATH = BACKEND_DIR / "src" / "main" / "resources" / "schema.sql"
 
 processes = []
+
+def load_env_file(env_path):
+    """Load environment variables from a .env file into os.environ."""
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ[key.strip()] = val.strip()
 
 def log(msg, color=BLUE):
     print(f"{color}{BOLD}[Launcher]{RESET} {msg}")
@@ -162,8 +172,12 @@ def main():
     signal.signal(signal.SIGTERM, cleanup)
 
     print(f"\n{GREEN}{BOLD}======================================================{RESET}")
-    print(f"{GREEN}{BOLD}   Academic Resume Builder & PyPortfolio Launcher     {RESET}")
+    print(f"{GREEN}{BOLD}   Academic Resume Builder & Portfolio Launcher       {RESET}")
     print(f"{GREEN}{BOLD}======================================================{RESET}\n")
+
+    # Load environment variables from .env.local
+    load_env_file(ROOT_DIR / ".env.local")
+    load_env_file(FRONTEND_DIR / ".env.local")
 
     # 1. Verify project directories exist
     if not BACKEND_DIR.exists():
@@ -227,7 +241,9 @@ def main():
 
     if backend_ready and frontend_ready:
         print(f"\n{GREEN}{BOLD}🚀 Application launched successfully!{RESET}")
-        print(f"{BLUE}{BOLD}🌐 Opening http://localhost:3000 in your browser...{RESET}\n")
+        print(f"{BLUE}{BOLD}🌐 Frontend: http://localhost:3000{RESET}")
+        print(f"{BLUE}{BOLD}⚡ Backend API: http://localhost:8080{RESET}")
+        print(f"{GREEN}{BOLD}🛠️  DB Admin Portal: http://localhost:8090{RESET}\n")
         webbrowser.open("http://localhost:3000")
 
     print(f"{YELLOW}Press Ctrl+C at any time to stop both servers.{RESET}\n")

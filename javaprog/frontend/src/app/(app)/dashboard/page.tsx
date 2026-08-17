@@ -226,7 +226,7 @@ export default function DashboardPage() {
                       variant="outline"
                       size="sm"
                       className="w-full text-xs gap-1.5 rounded-xl font-semibold border-primary/20 hover:bg-primary/10"
-                      onClick={() => router.push("/resume-builder")}
+                      onClick={() => router.push(`/resume-builder?snapshotId=${snapshot.id}`)}
                     >
                       <span>View Snapshot</span>
                       <ArrowRight className="h-3.5 w-3.5" />

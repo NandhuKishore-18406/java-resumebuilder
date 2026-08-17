@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppState } from "@/hooks/useAppState";
 import { getSessionUser } from "@/lib/auth";
@@ -23,8 +23,9 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getHistory, saveSnapshot, deleteSnapshot, restoreSnapshot, type ResumeSnapshot } from "@/lib/resumeHistory";
 
-export default function ResumeBuilderPage() {
+function ResumeBuilderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { state, updateState } = useAppState();
   
@@ -71,6 +72,36 @@ export default function ResumeBuilderPage() {
     }
     
     (async () => {
+      const snapshots = await getHistory();
+      setHistory(snapshots);
+
+      const snapshotIdParam = searchParams.get("snapshotId");
+      if (snapshotIdParam) {
+        const targetId = Number(snapshotIdParam);
+        const targetSnapshot = snapshots.find((s) => s.id === targetId);
+        if (targetSnapshot && targetSnapshot.resumeData) {
+          const data = targetSnapshot.resumeData;
+          if (data.fields) setResumeFields((prev) => ({ ...prev, ...data.fields }));
+          if (data.education) setEducation(data.education);
+          if (data.projects) setProjects(data.projects);
+          if (data.experience) setExperience(data.experience);
+          if (data.achievements) setAchievements(data.achievements);
+          if (data.certificates) setCertificates(data.certificates);
+          
+          saveState({
+            resumeFields: data.fields,
+            resumeEduEntries: data.education,
+            resumeProjectEntries: data.projects,
+            resumeExpEntries: data.experience,
+            resumeAchEntries: data.achievements,
+            resumeCertEntries: data.certificates
+          });
+          setActiveTab("preview");
+          toast.success(`Viewing snapshot: ${targetSnapshot.label || "Version"}`);
+          return;
+        }
+      }
+
       const currentState = await getState();
       if (currentState.resumeFields) setResumeFields((prev) => ({ ...prev, ...currentState.resumeFields }));
       if (currentState.resumeEduEntries) setEducation(currentState.resumeEduEntries);
@@ -78,9 +109,8 @@ export default function ResumeBuilderPage() {
       if (currentState.resumeExpEntries) setExperience(currentState.resumeExpEntries);
       if (currentState.resumeAchEntries) setAchievements(currentState.resumeAchEntries);
       if (currentState.resumeCertEntries) setCertificates(currentState.resumeCertEntries);
-      await loadHistory();
     })();
-  }, [user, router]);
+  }, [user, router, searchParams]);
 
   const loadHistory = async () => {
     const snapshots = await getHistory();
@@ -213,6 +243,7 @@ export default function ResumeBuilderPage() {
       setAchievements(resumeData.achievements);
       setCertificates(resumeData.certificates);
       saveResumeState();
+      setActiveTab("preview");
     }
     
     setRestoringId(null);
@@ -1118,5 +1149,20 @@ export default function ResumeBuilderPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export default function ResumeBuilderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center p-12 border rounded-2xl bg-card/60 backdrop-blur-md">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
+          <span className="text-sm text-muted-foreground font-medium">Loading Resume Builder...</span>
+        </div>
+      }
+    >
+      <ResumeBuilderContent />
+    </Suspense>
   );
 }

@@ -38,33 +38,37 @@ public class ProfileService {
             return p;
         });
 
-        // Copy non-null/updatable properties to existing entity
-        existing.setName(incoming.getName() != null ? incoming.getName() : user.getName());
-        existing.setEmail(incoming.getEmail() != null ? incoming.getEmail() : user.getEmail());
-        existing.setPhone(incoming.getPhone());
-        existing.setLocation(incoming.getLocation());
-        existing.setUrl(incoming.getUrl());
-        existing.setLinkedin(incoming.getLinkedin());
-        existing.setGithub(incoming.getGithub());
-        existing.setLeetcode(incoming.getLeetcode());
-        existing.setBio(incoming.getBio());
-        existing.setTechskills(incoming.getTechskills());
-        existing.setFrameworks(incoming.getFrameworks());
-        existing.setDatabases(incoming.getDatabases());
-        existing.setTools(incoming.getTools());
-        existing.setSoftskills(incoming.getSoftskills());
-        existing.setLanguages(incoming.getLanguages());
-        existing.setAwards(incoming.getAwards());
-        existing.setDesignation(incoming.getDesignation());
-        existing.setDepartment(incoming.getDepartment());
-        existing.setInstitution(incoming.getInstitution());
-        existing.setVidwanId(incoming.getVidwanId());
-        existing.setOrcidId(incoming.getOrcidId());
-        existing.setEducation(incoming.getEducation());
-        existing.setProjects(incoming.getProjects());
-        existing.setExperience(incoming.getExperience());
-        existing.setPublications(incoming.getPublications());
-        existing.setInterests(incoming.getInterests());
+        // Merge incoming non-null properties into existing profile entity (supports partial requests)
+        if (incoming.getName() != null) existing.setName(incoming.getName());
+        else if (existing.getName() == null) existing.setName(user.getName());
+
+        if (incoming.getEmail() != null) existing.setEmail(incoming.getEmail());
+        else if (existing.getEmail() == null) existing.setEmail(user.getEmail());
+
+        if (incoming.getPhone() != null) existing.setPhone(incoming.getPhone());
+        if (incoming.getLocation() != null) existing.setLocation(incoming.getLocation());
+        if (incoming.getUrl() != null) existing.setUrl(incoming.getUrl());
+        if (incoming.getLinkedin() != null) existing.setLinkedin(incoming.getLinkedin());
+        if (incoming.getGithub() != null) existing.setGithub(incoming.getGithub());
+        if (incoming.getLeetcode() != null) existing.setLeetcode(incoming.getLeetcode());
+        if (incoming.getBio() != null) existing.setBio(incoming.getBio());
+        if (incoming.getTechskills() != null) existing.setTechskills(incoming.getTechskills());
+        if (incoming.getFrameworks() != null) existing.setFrameworks(incoming.getFrameworks());
+        if (incoming.getDatabases() != null) existing.setDatabases(incoming.getDatabases());
+        if (incoming.getTools() != null) existing.setTools(incoming.getTools());
+        if (incoming.getSoftskills() != null) existing.setSoftskills(incoming.getSoftskills());
+        if (incoming.getLanguages() != null) existing.setLanguages(incoming.getLanguages());
+        if (incoming.getAwards() != null) existing.setAwards(incoming.getAwards());
+        if (incoming.getDesignation() != null) existing.setDesignation(incoming.getDesignation());
+        if (incoming.getDepartment() != null) existing.setDepartment(incoming.getDepartment());
+        if (incoming.getInstitution() != null) existing.setInstitution(incoming.getInstitution());
+        if (incoming.getVidwanId() != null) existing.setVidwanId(incoming.getVidwanId());
+        if (incoming.getOrcidId() != null) existing.setOrcidId(incoming.getOrcidId());
+        if (incoming.getEducation() != null) existing.setEducation(incoming.getEducation());
+        if (incoming.getProjects() != null) existing.setProjects(incoming.getProjects());
+        if (incoming.getExperience() != null) existing.setExperience(incoming.getExperience());
+        if (incoming.getPublications() != null) existing.setPublications(incoming.getPublications());
+        if (incoming.getInterests() != null) existing.setInterests(incoming.getInterests());
 
         return profileRepository.save(existing);
     }

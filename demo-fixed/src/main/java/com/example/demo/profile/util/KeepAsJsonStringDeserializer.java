@@ -15,7 +15,11 @@ public class KeepAsJsonStringDeserializer extends JsonDeserializer<String> {
             return null;
         }
         if (node.isValueNode()) {
-            return node.asText();
+            String text = node.asText();
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            return text;
         }
         return node.toString();
     }

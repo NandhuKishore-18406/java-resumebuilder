@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.example.demo.profile.util.KeepAsJsonStringDeserializer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "profiles")
@@ -63,9 +65,13 @@ public class Profile {
     private String softskills;
 
     @Column(columnDefinition = "TEXT")
+    @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String languages;
 
     @Column(columnDefinition = "TEXT")
+    @JsonRawValue
+    @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String awards;
 
     @Column(length = 255)
@@ -83,21 +89,25 @@ public class Profile {
     @Column(length = 255)
     private String orcidId;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
     @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String education;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
     @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String projects;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
     @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)
     private String experience;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     @JsonRawValue
     @JsonDeserialize(using = KeepAsJsonStringDeserializer.class)

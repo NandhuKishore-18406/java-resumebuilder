@@ -31,7 +31,7 @@ public class PortfolioController {
         byte[] zipBytes = portfolioService.generatePortfolioZip(user.getId(), html, css, js);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"pyportfolio.zip\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"portfolio.zip\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(zipBytes);
     }
